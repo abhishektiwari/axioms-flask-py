@@ -125,10 +125,7 @@ class CacheFetcher:
         if cached:
             return cached
         # Retrieve and cache
-        if app.config["URL_LIB_SSL_IGNORE"]:
-            context = ssl._create_unverified_context()
-            data = urlopen(url, context=context).read()
-        else:
-            data = urlopen(url).read()
+        context = ssl._create_unverified_context()
+        data = urlopen(url, context=context).read()
         cache.set("jwks" + url, data, timeout=max_age)
         return data

@@ -106,7 +106,6 @@ def is_authenticated(fn):
         try:
             app.config["AXIOMS_DOMAIN"]
             app.config["AXIOMS_AUDIENCE"]
-            app.config["URL_LIB_SSL_IGNORE"]
         except KeyError as e:
             raise Exception(
                 "🔥🔥 Please set value for {} in a .env file. For more details review axioms-flask-py docs.".format(

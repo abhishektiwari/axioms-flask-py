@@ -21,7 +21,6 @@ Create a `.env` file and add following configs,
 ```
 AXIOMS_DOMAIN=<your-axioms-slug>.axioms.io
 AXIOMS_AUDIENCE=<your-axioms-resource-identifier>
-URL_LIB_SSL_IGNORE=True
 ```
 
 ### Load Config
