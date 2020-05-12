@@ -74,7 +74,9 @@ def api_private():
     return jsonify({'message': 'All good. You are authenticated!'})
 ```
 
-### has required roles
+### Has required roles
+**Prerequisite:** Roles should be [defined](https://developer.axioms.io/docs/getting-started/role/index) and [assigned to users](https://developer.axioms.io/docs/getting-started/user/index#edit-user-roles) in Axioms.
+
 `has_required_roles` requires an array of strings representing the allowed role or roles for the view as parameter. If intersection of allowed roles on the view and the roles in the token is a positive number, function will return true otherwise false.
 
 ```
@@ -85,7 +87,9 @@ def sample_role():
     return jsonify({'message': 'You have required role to create, update, read, delete!'})
 ```
 
-### has required permissions
+### Has required permissions
+**Prerequisite:** Permissions should be defined when a resource is created and configured in Axioms (see how to add [permissions on resource](https://developer.axioms.io/docs/getting-started/resource/configure/permissions/)).
+
 `has_required_roles` requires an array of strings representing the allowed permission or permissions for the view as parameter.
 
 For instance, to check `sample:create` or `sample:update` permissions you will pass `['sample:create', 'sample:update']` as parameter in `has_required_roles`. If intersection of allowed roles on the view and the roles in the token is a positive number, function will return true otherwise false.
@@ -97,3 +101,6 @@ For instance, to check `sample:create` or `sample:update` permissions you will p
 def sample_create():
     return jsonify({'message': 'You have required permissions to create or update!'})
 ```
+
+## Flask Sample 
+To learn more download our [Flask sample](https://github.com/axioms-io/sample-python-flask) from our Github repository. In less than 10 minutes you can deploy sample to Heroku or AWS Lambda.
