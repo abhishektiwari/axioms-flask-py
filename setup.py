@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="axioms-flask-py",
-    version="0.0.2",
+    version="0.0.3",
     author="Axioms",
     author_email="info@axioms.io",
     description="Flask SDK for Axioms",

@@ -33,13 +33,13 @@ twine upload dist/*
 Add following in `requirements.txt` file
 
 ```
--e /path/to/py-axioms
+-e /path/to/axioms-flask-py
 ```
 
 or
 
 ```
-pip install -e /path/to/py-axioms
+pip install -e /path/to/axioms-flask-py
 ```
 
 or
