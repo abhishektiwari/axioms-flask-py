@@ -120,7 +120,7 @@ def has_valid_access_token(fn):
                 )
             )
         token = has_bearer_token(request)
-        if token and has_valid_access_token(token):
+        if token and has_valid_token(token):
             return fn(*args, **kwargs)
         else:
             raise AxiomsError(
