@@ -2,7 +2,13 @@ from functools import wraps
 from flask import Flask, jsonify, request
 from flask import current_app as app
 from .error import AxiomsError
-from .token import has_bearer_token, has_valid_token, check_scopes, check_roles, check_permissions
+from .token import (
+    has_bearer_token,
+    has_valid_token,
+    check_scopes,
+    check_roles,
+    check_permissions,
+)
 
 
 def has_required_scopes(*required_scopes):
@@ -66,6 +72,7 @@ def has_required_roles(*view_roles):
 
     return decorator
 
+
 def has_required_permissions(*view_permissions):
     def decorator(fn):
         @wraps(fn)
@@ -100,7 +107,7 @@ def has_required_permissions(*view_permissions):
     return decorator
 
 
-def has_valid_token(fn):
+def has_valid_access_token(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:
@@ -113,7 +120,7 @@ def has_valid_token(fn):
                 )
             )
         token = has_bearer_token(request)
-        if token and has_valid_token(token):
+        if token and has_valid_access_token(token):
             return fn(*args, **kwargs)
         else:
             raise AxiomsError(

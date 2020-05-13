@@ -56,7 +56,11 @@ def has_valid_token(token):
         return True
     else:
         raise AxiomsError(
-            {"error": "unauthorized_access", "error_description": "Invalid access token"}, 401
+            {
+                "error": "unauthorized_access",
+                "error_description": "Invalid access token",
+            },
+            401,
         )
 
 
@@ -114,7 +118,11 @@ def get_key_from_jwks_json(tenant, kid):
         return key
     except Exception:
         raise AxiomsError(
-            {"error": "unauthorized_access", "error_description": "Invalid access token"}, 401
+            {
+                "error": "unauthorized_access",
+                "error_description": "Invalid access token",
+            },
+            401,
         )
 
 
