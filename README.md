@@ -14,7 +14,7 @@ pip install axioms-flask-py
 ```
 
 ## Documentation
-See [documentation](https://developer.axioms.io/docs/sdks-samples/use-with-apis/python/flask-apis) `axioms-flask-py`.
+See [documentation](https://developer.axioms.io/docs/sdks-samples/use-with-apis/python/flask-apis) for `axioms-flask-py`.
 
 ## Flask Sample
 To see a complete working example download [Flask sample](https://github.com/axioms-io/sample-python-flask) from our Github repository or simply deploy to heroku by clicking following button. You will need to provide Axioms domain and Axioms audience to complete deployment.
