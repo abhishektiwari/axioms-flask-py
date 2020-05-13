@@ -11,7 +11,7 @@ class MethodView(MethodView):
             to the standard decorator assignment.
             
             Example decorator use:
-            decorators = [is_authenticated] # applies to all methods
+            decorators = [has_valid_token] # applies to all methods
             _decorators = {
                 'post': [has_required_permissions("sample:create")]
             }    

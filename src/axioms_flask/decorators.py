@@ -100,7 +100,7 @@ def has_required_permissions(*view_permissions):
     return decorator
 
 
-def is_authenticated(fn):
+def has_valid_token(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:

@@ -51,11 +51,11 @@ def handle_auth_error(ex):
 ```
 
 ## Guard API Views
-Use `is_authenticated` along with `has_required_scopes`, `has_required_roles`, `has_required_permissions` decorators to guard your views. 
+Use `has_valid_token` along with `has_required_scopes`, `has_required_roles`, `has_required_permissions` decorators to guard your views. 
 
-For a protected API view, `is_authenticated` should be always the 
+For a protected API view, `has_valid_token` should be always the 
 first decorator. Order of decorators is important. Other decorators should
-always come after `is_authenticated`.
+always come after `has_valid_token`.
 
 ### has required scopes
 `has_required_scopes` requires an array of strings representing the allowed scope or scopes for the view as parameter.
@@ -64,10 +64,10 @@ For instance, to check `openid` or `profile` pass `['profile', 'openid']` as par
 
 
 ```
-from axioms_flask.decorators import is_authenticated, has_required_scopes
+from axioms_flask.decorators import has_valid_token, has_required_scopes
 
 @private_api.route('/private', methods=["GET"])
-@is_authenticated
+@has_valid_token
 @has_required_scopes(['openid', 'profile'])
 def api_private():
     return jsonify({'message': 'All good. You are authenticated!'})
@@ -80,7 +80,7 @@ def api_private():
 
 ```
 @role_api.route("/role", methods=["GET", "POST", "PATCH", "DELETE"])
-@is_authenticated
+@has_valid_token
 @has_required_roles(["sample:role"])
 def sample_role():
     return jsonify({'message': 'You have required role to create, update, read, delete!'})
@@ -95,7 +95,7 @@ For instance, to check `sample:create` or `sample:update` permissions you will p
 
 ```
 @permission_api.route("/permission", methods=["POST", "PATCH"])
-@is_authenticated
+@has_valid_token
 @has_required_permissions(["sample:create", "sample:updated"])
 def sample_create():
     return jsonify({'message': 'You have required permissions to create or update!'})
