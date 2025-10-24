@@ -1,5 +1,5 @@
 # axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py)
-[Axioms](https://axioms.io) Python client for Flask. Secure your Flask APIs using Axioms Authentication and Authorization.
+Axioms Python client for Flask. Secure your Flask APIs using Axioms Authentication and Authorization.
 
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
 
