@@ -1,5 +1,54 @@
 [build-system]
-# These are the assumed default build requirements from pip:
-# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=40.8.0", "wheel"]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "axioms-flask-py"
+dynamic = ["version"]
+authors = [
+    {name = "Abhishek Tiwari", email = "abhishek@abhishek-tiwari.com"}
+]
+description = "Flask SDK for Axioms and OAuth2 / OpenID Connect based authentication and authorization providers."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+keywords = ["axioms", "authentication", "authorization", "iam", "authz", "authn", "jwt", "openid", "oauth2"]
+classifiers = [
+    "Programming Language :: Python :: 3.7",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pyjwt",
+    "jwcrypto",
+    "python-box",
+    "Flask",
+    "Flask-DotEnv",
+    "six",
+]
+
+[project.urls]
+Documentation = "https://github.com/axioms-io/axioms-flask-py"
+Source = "https://github.com/axioms-io/axioms-flask-py"
+Tracker = "https://github.com/axioms-io/axioms-flask-py/issues"
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+write_to = "src/axioms_flask/_version.py"
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
