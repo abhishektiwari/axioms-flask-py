@@ -70,11 +70,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # HTML output
 html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
+# Custom CSS files
+html_css_files = [
+    'custom.css',
+]
 html_theme_options = {
     "repository_url": "https://github.com/axioms-io/axioms-flask-py",
     "repository_provider": "github",
     "repository_branch": "main",
-    "path_to_docs": "docs/source",
+    "path_to_docs": "docs",
     "use_issues_button": True,
     "use_repository_button": True,
     "use_edit_page_button": True, 

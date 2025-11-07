@@ -4,6 +4,33 @@ Welcome to axioms-flask-py documentation!
 **axioms-flask-py** is a Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers.
 Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
 
+.. image:: https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py
+   :alt: GitHub Release
+   :target: https://github.com/abhishektiwari/axioms-flask-py/releases
+
+.. image:: https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests
+   :alt: GitHub Actions Test Workflow Status
+   :target: https://github.com/abhishektiwari/axioms-flask-py/actions/workflows/test.yml
+
+.. image:: https://img.shields.io/github/license/abhishektiwari/axioms-flask-py
+   :alt: License
+
+.. image:: https://img.shields.io/github/last-commit/abhishektiwari/axioms-flask-py
+   :alt: GitHub Last Commit
+
+.. image:: https://img.shields.io/pypi/v/axioms-flask-py
+   :alt: PyPI Version
+
+.. image:: https://img.shields.io/pypi/status/axioms-flask-py
+   :alt: PyPI - Status
+
+.. image:: https://img.shields.io/pepy/dt/axioms-flask-py?label=PyPI%20Downloads
+   :alt: PyPI Downloads
+   :target: https://pypi.org/project/axioms-flask-py/
+
+.. image:: https://img.shields.io/pypi/pyversions/axioms-flask-py?logo=python&logoColor=white
+   :alt: Python Versions
+
 Features
 --------
 
