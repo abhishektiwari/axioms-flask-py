@@ -1,7 +1,16 @@
-# axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py)
-Flask SDK for Axioms and OAuth2 / OpenID Connect based authentication and authorization providers. Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
+# axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
+Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers (Previously designed for  Axioms). Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
 
-![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
+![GitHub Release](https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py)
+![GitHub Actions Test Workflow Status](https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests)
+![PyPI - Version](https://img.shields.io/pypi/v/axioms-flask-py)
+![Python Wheels](https://img.shields.io/pypi/wheel/axioms-flask-py)
+![Python Versions](https://img.shields.io/pypi/pyversions/axioms-flask-py?logo=python&logoColor=white)
+![GitHub last commit](https://img.shields.io/github/last-commit/abhishektiwari/axioms-flask-py)
+![PyPI - Status](https://img.shields.io/pypi/status/axioms-flask-py)
+![License](https://img.shields.io/github/license/abhishektiwari/axioms-flask-py)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/abhishektiwari/axioms-flask-py/total?label=GitHub%20Downloads)
+![PyPI Downloads](https://img.shields.io/pepy/dt/axioms-flask-py?label=PyPI%20Downloads)
 
 ## Prerequisite
 
@@ -32,10 +41,29 @@ pip install axioms-flask-py
 ### Add environment variables
 Create a `.env` file and add following configs
 
+**Option 1: Using AXIOMS_DOMAIN** (for Axioms or standard OAuth2/OIDC providers)
 ```bash title=".env"
 AXIOMS_DOMAIN=<your-axioms-slug>.axioms.io
 AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
 ```
+
+**Option 2: Using AXIOMS_JWKS_URL** (for custom JWKS endpoints)
+```bash title=".env"
+AXIOMS_JWKS_URL=https://my-auth.domain.com/oauth2/.well-known/jwks.json
+AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
+```
+
+**Configuration Options:**
+- `AXIOMS_AUDIENCE` (required): Your resource identifier or API audience
+- `AXIOMS_JWKS_URL` (optional): Full URL to your JWKS endpoint
+- `AXIOMS_DOMAIN` (optional): Your auth domain (e.g., `my-auth.domain.com`)
+
+**Note:** You must provide either `AXIOMS_JWKS_URL` or `AXIOMS_DOMAIN`.
+
+**Claims Handling:**
+- Roles are checked from `roles` claim, or `https://{AXIOMS_DOMAIN}/claims/roles` if using namespaced claims
+- Permissions are checked from `permissions` claim, or `https://{AXIOMS_DOMAIN}/claims/permissions` if using namespaced claims
+- Scopes are checked from the standard `scope` claim
 
 ### Load environment variables
 In your Flask app file (where flask app is declared) add following.

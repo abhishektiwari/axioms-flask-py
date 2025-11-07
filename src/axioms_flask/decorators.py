@@ -1,5 +1,23 @@
+"""Decorators for Flask route authentication and authorization.
+
+Configuration:
+    AXIOMS_AUDIENCE: Required. Expected audience claim in the JWT token.
+    AXIOMS_JWKS_URL: Optional. Full URL to JWKS endpoint (e.g.,
+        https://my-auth.domain.com/oauth2/.well-known/jwks.json).
+    AXIOMS_DOMAIN: Optional. Axioms domain name. Used for constructing the
+        JWKS URL if AXIOMS_JWKS_URL is not provided. Also used as fallback
+        for extracting namespaced roles/permissions claims.
+
+Note: Either AXIOMS_JWKS_URL or AXIOMS_DOMAIN must be configured.
+
+Claims handling:
+    - Scopes: Checked from standard 'scope' claim
+    - Roles: Checked from 'roles' claim, or 'https://{AXIOMS_DOMAIN}/claims/roles' if AXIOMS_DOMAIN is set
+    - Permissions: Checked from 'permissions' claim, or 'https://{AXIOMS_DOMAIN}/claims/permissions' if AXIOMS_DOMAIN is set
+"""
+
 from functools import wraps
-from flask import Flask, jsonify, request
+from flask import request
 from flask import current_app as app
 from .error import AxiomsError
 from .token import (
@@ -12,6 +30,26 @@ from .token import (
 
 
 def has_required_scopes(*required_scopes):
+    """Decorator to enforce scope-based authorization.
+
+    Checks if the authenticated user's token contains any of the required scopes.
+
+    Args:
+        *required_scopes: Variable length list of required scope strings.
+
+    Returns:
+        Callable: Decorated function that enforces scope check.
+
+    Raises:
+        AxiomsError: If token is missing or doesn't contain required scopes.
+
+    Example:
+        @app.route('/api/resource')
+        @has_required_scopes('read:resource', 'write:resource')
+        def protected_route():
+            return {'data': 'protected'}
+    """
+
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -40,6 +78,26 @@ def has_required_scopes(*required_scopes):
 
 
 def has_required_roles(*view_roles):
+    """Decorator to enforce role-based authorization.
+
+    Checks if the authenticated user's token contains any of the required roles.
+
+    Args:
+        *view_roles: Variable length list of required role strings.
+
+    Returns:
+        Callable: Decorated function that enforces role check.
+
+    Raises:
+        AxiomsError: If token is missing or doesn't contain required roles.
+
+    Example:
+        @app.route('/admin/users')
+        @has_required_roles('admin', 'superuser')
+        def admin_route():
+            return {'users': []}
+    """
+
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -52,12 +110,18 @@ def has_required_roles(*view_roles):
                     },
                     401,
                 )
-            token_roles = []
-            token_roles = getattr(
-                payload,
-                "https://{}/claims/roles".format(app.config["AXIOMS_DOMAIN"]),
-                [],
-            )
+
+            # Check for roles in standard claim first, then namespaced claim
+            token_roles = getattr(payload, "roles", None)
+            if token_roles is None and app.config.get("AXIOMS_DOMAIN"):
+                token_roles = getattr(
+                    payload,
+                    "https://{}/claims/roles".format(app.config["AXIOMS_DOMAIN"]),
+                    [],
+                )
+            if token_roles is None:
+                token_roles = []
+
             if check_roles(token_roles, view_roles[0]):
                 return fn(*args, **kwargs)
             raise AxiomsError(
@@ -74,6 +138,26 @@ def has_required_roles(*view_roles):
 
 
 def has_required_permissions(*view_permissions):
+    """Decorator to enforce permission-based authorization.
+
+    Checks if the authenticated user's token contains any of the required permissions.
+
+    Args:
+        *view_permissions: Variable length list of required permission strings.
+
+    Returns:
+        Callable: Decorated function that enforces permission check.
+
+    Raises:
+        AxiomsError: If token is missing or doesn't contain required permissions.
+
+    Example:
+        @app.route('/api/delete')
+        @has_required_permissions('resource:delete')
+        def delete_route():
+            return {'status': 'deleted'}
+    """
+
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -86,12 +170,18 @@ def has_required_permissions(*view_permissions):
                     },
                     401,
                 )
-            token_permissions = []
-            token_permissions = getattr(
-                payload,
-                "https://{}/claims/permissions".format(app.config["AXIOMS_DOMAIN"]),
-                [],
-            )
+
+            # Check for permissions in standard claim first, then namespaced claim
+            token_permissions = getattr(payload, "permissions", None)
+            if token_permissions is None and app.config.get("AXIOMS_DOMAIN"):
+                token_permissions = getattr(
+                    payload,
+                    "https://{}/claims/permissions".format(app.config["AXIOMS_DOMAIN"]),
+                    [],
+                )
+            if token_permissions is None:
+                token_permissions = []
+
             if check_permissions(token_permissions, view_permissions[0]):
                 return fn(*args, **kwargs)
             raise AxiomsError(
@@ -108,16 +198,47 @@ def has_required_permissions(*view_permissions):
 
 
 def has_valid_access_token(fn):
+    """Decorator to enforce JWT token authentication.
+
+    Validates the JWT access token in the Authorization header and sets
+    the token payload in request.auth_jwt for use in the route handler.
+
+    Required config:
+        - AXIOMS_AUDIENCE: The expected audience claim
+        - AXIOMS_JWKS_URL (or AXIOMS_DOMAIN): JWKS endpoint URL or domain
+
+    Args:
+        fn: The Flask route function to decorate.
+
+    Returns:
+        Callable: Decorated function that enforces token validation.
+
+    Raises:
+        AxiomsError: If token is missing or invalid.
+        Exception: If required config is not set.
+
+    Example:
+        @app.route('/api/protected')
+        @has_valid_access_token
+        def protected_route():
+            user_id = request.auth_jwt.sub
+            return {'user_id': user_id}
+    """
+
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        try:
-            app.config["AXIOMS_DOMAIN"]
-            app.config["AXIOMS_AUDIENCE"]
-        except KeyError as e:
+        # Check AXIOMS_AUDIENCE
+        if "AXIOMS_AUDIENCE" not in app.config:
             raise Exception(
-                "🔥🔥 Please set value for {} in a .env file. For more details review axioms-flask-py docs.".format(
-                    e
-                )
+                "Please set AXIOMS_AUDIENCE in your config. "
+                "For more details review axioms-flask-py docs."
+            )
+
+        # Check for JWKS URL or domain
+        if "AXIOMS_JWKS_URL" not in app.config and "AXIOMS_DOMAIN" not in app.config:
+            raise Exception(
+                "Please set either AXIOMS_JWKS_URL or AXIOMS_DOMAIN in your config. "
+                "For more details review axioms-flask-py docs."
             )
         token = has_bearer_token(request)
         if token and has_valid_token(token):
