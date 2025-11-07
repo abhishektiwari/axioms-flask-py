@@ -1,24 +1,29 @@
 """Token validation and JWT verification for Axioms authentication.
 
 Configuration:
-    AXIOMS_AUDIENCE: Required. Expected audience claim in the JWT token.
-    AXIOMS_JWKS_URL: Optional. Full URL to JWKS endpoint (e.g.,
-        https://my-auth.domain.com/oauth2/.well-known/jwks.json).
-        If provided, this takes precedence over AXIOMS_DOMAIN.
-    AXIOMS_DOMAIN: Optional. Axioms domain name. If AXIOMS_JWKS_URL is not
-        provided, the JWKS URL will be constructed as:
-        https://{AXIOMS_DOMAIN}/oauth2/.well-known/jwks.json
+    ==================  ========  ===========================================================
+    Parameter           Required  Description
+    ==================  ========  ===========================================================
+    AXIOMS_AUDIENCE     Yes       Expected audience claim in the JWT token.
+    AXIOMS_JWKS_URL     No        Full URL to JWKS endpoint (e.g.,
+                                  https://my-auth.domain.com/oauth2/.well-known/jwks.json).
+                                  If provided, this takes precedence over AXIOMS_DOMAIN.
+    AXIOMS_DOMAIN       No        Axioms domain name. If AXIOMS_JWKS_URL is not provided,
+                                  the JWKS URL will be constructed as:
+                                  https://{AXIOMS_DOMAIN}/oauth2/.well-known/jwks.json
+    ==================  ========  ===========================================================
 
-Note: Either AXIOMS_JWKS_URL or AXIOMS_DOMAIN must be configured for token validation.
+Note:
+    Either AXIOMS_JWKS_URL or AXIOMS_DOMAIN must be configured for token validation.
 """
 
 import json
 import ssl
+import time
 import jwt
 from jwcrypto import jwk, jws
 from flask import request
 from flask import current_app as app
-from datetime import datetime
 from urllib.request import urlopen
 from box import Box
 from .error import AxiomsError
@@ -42,7 +47,7 @@ class SimpleCache:
         """
         if key in self._cache:
             value, expiry = self._cache[key]
-            if expiry is None or datetime.utcnow().timestamp() < expiry:
+            if expiry is None or time.time() < expiry:
                 return value
             else:
                 del self._cache[key]
@@ -56,7 +61,7 @@ class SimpleCache:
             value: Value to cache.
             timeout: Expiration timeout in seconds (default: 300).
         """
-        expiry = datetime.utcnow().timestamp() + timeout if timeout else None
+        expiry = time.time() + timeout if timeout else None
         self._cache[key] = (value, expiry)
 
 
@@ -150,7 +155,7 @@ def check_token_validity(token, key):
         Box or bool: Token payload as Box object if valid, False otherwise.
     """
     payload = get_payload_from_token(token, key)
-    now = datetime.utcnow().timestamp()
+    now = time.time()
     if payload and (now <= payload.exp):
         return payload
     else:
