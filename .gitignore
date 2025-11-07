@@ -13,3 +13,4 @@ __pycache__/
 .cache
 pip-wheel-metadata/*
 *.dist-info/
+src/axioms_flask/_version.py
