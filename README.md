@@ -1,7 +1,5 @@
-# axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py)
+# axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
 Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers (Previously designed for  Axioms). Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
-
-![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
 
 ## Prerequisite
 
