@@ -47,7 +47,7 @@ jobs:
         PRERELEASE_TAG="v${PRERELEASE_VERSION}"
 
         # GitHub tag for releases (with PR number and timestamp)
-        GITHUB_TAG="v${BASE_VERSION}-pr${PR_NUMBER}${TIMESTAMP}"
+        GITHUB_TAG="v${PRERELEASE_VERSION}"
 
         echo "version=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
         echo "version_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
@@ -98,6 +98,12 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+        pip install -e ".[dev]"
+
     - name: Set version for setuptools-scm
       run: |
         git config user.name "GitHub Actions"
@@ -105,12 +111,6 @@ jobs:
         echo "About to create tag: ${{ needs.generate-version.outputs.version_tag }}"
         git tag -a "${{ needs.generate-version.outputs.version_tag }}" -m "Release ${{ needs.generate-version.outputs.version_tag }}"
         echo "Created tag: ${{ needs.generate-version.outputs.version_tag }}"
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
-        pip install -e ".[dev]"
     
     - name: Build package
       run: make build
