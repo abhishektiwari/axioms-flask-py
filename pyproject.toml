@@ -43,9 +43,11 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://github.com/abhishektiwari/axioms-flask-py"
 Documentation = "https://axioms-flask-py.abhishek-tiwari.com/"
 Source = "https://github.com/abhishektiwari/axioms-flask-py"
 Tracker = "https://github.com/abhishektiwari/axioms-flask-py/issues"
+Changelog = "https://github.com/abhishektiwari/axioms-flask-py/releases"
 
 [project.optional-dependencies]
 dev = [
