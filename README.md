@@ -1,6 +1,17 @@
 # axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
 Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers (Previously designed for  Axioms). Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
 
+![GitHub Release](https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py)
+![GitHub Actions Test Workflow Status](https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests)
+![PyPI - Version](https://img.shields.io/pypi/v/axioms-flask-py)
+![Python Wheels](https://img.shields.io/pypi/wheel/axioms-flask-py)
+![Python Versions](https://img.shields.io/pypi/pyversions/axioms-flask-py?logo=python&logoColor=white)
+![GitHub last commit](https://img.shields.io/github/last-commit/abhishektiwari/axioms-flask-py)
+![PyPI - Status](https://img.shields.io/pypi/status/axioms-flask-py)
+![License](https://img.shields.io/github/license/abhishektiwari/axioms-flask-py)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/abhishektiwari/axioms-flask-py/total?label=GitHub%20Downloads)
+![PyPI Downloads](https://img.shields.io/pepy/dt/axioms-flask-py?label=PyPI%20Downloads)
+
 ## Prerequisite
 
 * Python 3.7+
