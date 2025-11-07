@@ -249,7 +249,7 @@ def get_jwks_url():
     if domain:
         return f"https://{domain}/oauth2/.well-known/jwks.json"
 
-    raise Exception(
+    raiseeption(
         "🔥🔥 Please set either AXIOMS_JWKS_URL or AXIOMS_DOMAIN in your config. "
         "For more details review axioms-flask-py docs."
     )
