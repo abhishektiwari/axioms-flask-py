@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [
     {name = "Abhishek Tiwari", email = "abhishek@abhishek-tiwari.com"}
 ]
-description = "Flask SDK for Axioms and OAuth2 / OpenID Connect based authentication and authorization providers."
+description = "OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.7"

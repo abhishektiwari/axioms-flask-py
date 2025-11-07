@@ -1,8 +1,7 @@
 Welcome to axioms-flask-py documentation!
 ==========================================
 
-**axioms-flask-py** is a Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers.
-Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
+OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens.
 
 .. image:: https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py
    :alt: GitHub Release
@@ -126,6 +125,62 @@ Use the following decorators to protect your API views:
    * - ``has_required_permissions``
      - Check any of the given permissions included in ``permissions`` claim of the access token. Should be after ``has_valid_access_token``.
      - An array of strings as ``conditional OR`` representing any of the allowed permissions for the view. For instance, to check ``sample:create`` or ``sample:update`` pass ``['sample:create', 'sample:update']``.
+
+OR vs AND Logic
+^^^^^^^^^^^^^^^
+
+By default, authorization decorators use **OR logic** - the token must have **at least ONE** of the specified claims. To require **ALL claims (AND logic)**, chain multiple decorators.
+
+**OR Logic (Default)** - Requires ANY of the specified claims:
+
+.. code-block:: python
+
+   @app.route('/api/resource')
+   @has_valid_access_token
+   @has_required_scopes(['read:resource', 'write:resource'])
+   def resource_route():
+       # User needs EITHER 'read:resource' OR 'write:resource' scope
+       return {'data': 'success'}
+
+   @app.route('/admin/users')
+   @has_valid_access_token
+   @has_required_roles(['admin', 'superuser'])
+   def admin_route():
+       # User needs EITHER 'admin' OR 'superuser' role
+       return {'users': []}
+
+**AND Logic (Chaining)** - Requires ALL of the specified claims:
+
+.. code-block:: python
+
+   @app.route('/api/strict')
+   @has_valid_access_token
+   @has_required_scopes(['read:resource'])
+   @has_required_scopes(['write:resource'])
+   def strict_route():
+       # User needs BOTH 'read:resource' AND 'write:resource' scopes
+       return {'data': 'requires both scopes'}
+
+   @app.route('/admin/critical')
+   @has_valid_access_token
+   @has_required_roles(['admin'])
+   @has_required_roles(['superuser'])
+   def critical_route():
+       # User needs BOTH 'admin' AND 'superuser' roles
+       return {'message': 'requires both roles'}
+
+**Mixed Logic** - Combine OR and AND by chaining:
+
+.. code-block:: python
+
+   @app.route('/api/advanced')
+   @has_valid_access_token
+   @has_required_scopes(['openid', 'profile'])  # Needs openid OR profile
+   @has_required_roles(['editor'])               # AND must have editor role
+   @has_required_permissions(['resource:read', 'resource:write'])  # AND read OR write permission
+   def advanced_route():
+       # User needs: (openid OR profile) AND (editor) AND (read OR write)
+       return {'data': 'complex authorization'}
 
 Contents
 --------

@@ -1,5 +1,5 @@
 # axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
-Flask SDK for OAuth2 / OpenID Connect based authentication and authorization providers (Previously designed for  Axioms). Secure your Flask APIs using OAuth2 / OpenID Connect based authentication and authorization checks.
+OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens.
 
 ![GitHub Release](https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py)
 ![GitHub Actions Test Workflow Status](https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests)
@@ -95,12 +95,67 @@ def handle_auth_error(ex):
 ### Guard Your Flask API Views
 Use following decorators to guard you API views.
 
-| Decorators | Description | Parameter | 
+| Decorators | Description | Parameter |
 | -- | -- | -- |
-| `axioms_flask.decorators.`<br/>`has_valid_access_token` | Checks if API request includes a valid bearer access token as authorization header. Check performed includes: token signature validation, expiry datetime validation, and token audience validation. Should be always the `first` decorator on the protected or private view. |  | 
+| `axioms_flask.decorators.`<br/>`has_valid_access_token` | Checks if API request includes a valid bearer access token as authorization header. Check performed includes: token signature validation, expiry datetime validation, and token audience validation. Should be always the `first` decorator on the protected or private view. |  |
 | `axioms_flask.decorators.`<br/>`has_required_scopes` | Check any of the given scopes included in `scope` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed scope or scopes for the view as parameter. For instance, to check `openid` or `profile` pass `['profile', 'openid']` as parameter. |
 | `axioms_flask.decorators.`<br/>`has_required_roles` | Check any of the given roles included in `roles` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed role or roles for the view as parameter. For instance, to check `sample:role1` or `sample:role2` roles you will pass `['sample:role1', 'sample:role2']` as parameter. |
 | `axioms_flask.decorators.`<br/>`has_required_permissions` | Check any of the given permissions included in `permissions` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed permission or permissions for the view as parameter. For instance, to check `sample:create` or `sample:update` permissions you will pass `['sample:create', 'sample:update']` as parameter. |
+
+#### OR vs AND Logic
+
+By default, authorization decorators use **OR logic** - the token must have **at least ONE** of the specified claims. To require **ALL claims (AND logic)**, chain multiple decorators.
+
+**OR Logic (Default)** - Requires ANY of the specified claims:
+
+```python
+@app.route('/api/resource')
+@has_valid_access_token
+@has_required_scopes(['read:resource', 'write:resource'])
+def resource_route():
+    # User needs EITHER 'read:resource' OR 'write:resource' scope
+    return {'data': 'success'}
+
+@app.route('/admin/users')
+@has_valid_access_token
+@has_required_roles(['admin', 'superuser'])
+def admin_route():
+    # User needs EITHER 'admin' OR 'superuser' role
+    return {'users': []}
+```
+
+**AND Logic (Chaining)** - Requires ALL of the specified claims:
+
+```python
+@app.route('/api/strict')
+@has_valid_access_token
+@has_required_scopes(['read:resource'])
+@has_required_scopes(['write:resource'])
+def strict_route():
+    # User needs BOTH 'read:resource' AND 'write:resource' scopes
+    return {'data': 'requires both scopes'}
+
+@app.route('/admin/critical')
+@has_valid_access_token
+@has_required_roles(['admin'])
+@has_required_roles(['superuser'])
+def critical_route():
+    # User needs BOTH 'admin' AND 'superuser' roles
+    return {'message': 'requires both roles'}
+```
+
+**Mixed Logic** - Combine OR and AND by chaining:
+
+```python
+@app.route('/api/advanced')
+@has_valid_access_token
+@has_required_scopes(['openid', 'profile'])  # Needs openid OR profile
+@has_required_roles(['editor'])               # AND must have editor role
+@has_required_permissions(['resource:read', 'resource:write'])  # AND read OR write permission
+def advanced_route():
+    # User needs: (openid OR profile) AND (editor) AND (read OR write)
+    return {'data': 'complex authorization'}
+```
 
 ### Examples
 
