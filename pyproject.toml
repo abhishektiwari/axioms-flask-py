@@ -13,11 +13,27 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.7"
 keywords = ["axioms", "authentication", "authorization", "iam", "authz", "authn", "jwt", "openid", "oauth2"]
+
 classifiers = [
-    "Programming Language :: Python :: 3.7",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration :: Authentication/Directory",
+    "Framework :: Flask",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
+
 dependencies = [
     "pyjwt",
     "jwcrypto",

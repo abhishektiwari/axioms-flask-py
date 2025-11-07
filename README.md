@@ -9,7 +9,6 @@ Flask SDK for OAuth2 / OpenID Connect based authentication and authorization pro
 ![GitHub last commit](https://img.shields.io/github/last-commit/abhishektiwari/axioms-flask-py)
 ![PyPI - Status](https://img.shields.io/pypi/status/axioms-flask-py)
 ![License](https://img.shields.io/github/license/abhishektiwari/axioms-flask-py)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/abhishektiwari/axioms-flask-py/total?label=GitHub%20Downloads)
 ![PyPI Downloads](https://img.shields.io/pepy/dt/axioms-flask-py?label=PyPI%20Downloads)
 
 ## Prerequisite
