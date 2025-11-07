@@ -63,4 +63,4 @@ docs-watch:
 	@echo "Starting auto-build documentation server at http://localhost:8000"
 	@echo "Documentation will rebuild automatically when you save changes"
 	@echo "Press Ctrl+C to stop"
-	sphinx-autobuild docs docs/_build/html --port 8000
+	sphinx-autobuild docs docs/_build/html --port 8000 --watch src/

@@ -1,25 +1,4 @@
-"""Decorators for Flask route authentication and authorization.
-
-Configuration:
-    ==================  ========  ===========================================================
-    Parameter           Required  Description
-    ==================  ========  ===========================================================
-    AXIOMS_AUDIENCE     Yes       Expected audience claim in the JWT token.
-    AXIOMS_JWKS_URL     No        Full URL to JWKS endpoint (e.g.,
-                                  https://my-auth.domain.com/oauth2/.well-known/jwks.json).
-    AXIOMS_DOMAIN       No        Axioms domain name. Used for constructing the JWKS URL if
-                                  AXIOMS_JWKS_URL is not provided. Also used as fallback for
-                                  extracting namespaced roles/permissions claims.
-    ==================  ========  ===========================================================
-
-Note:
-    Either AXIOMS_JWKS_URL or AXIOMS_DOMAIN must be configured.
-
-Claims handling:
-    - Scopes: Checked from standard 'scope' claim
-    - Roles: Checked from 'roles' claim, or 'https://{AXIOMS_DOMAIN}/claims/roles' if AXIOMS_DOMAIN is set
-    - Permissions: Checked from 'permissions' claim, or 'https://{AXIOMS_DOMAIN}/claims/permissions' if AXIOMS_DOMAIN is set
-"""
+"""Decorators for Flask route authentication and authorization."""
 
 from functools import wraps
 from flask import request

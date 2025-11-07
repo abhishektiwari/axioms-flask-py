@@ -1,21 +1,4 @@
-"""Token validation and JWT verification for Axioms authentication.
-
-Configuration:
-    ==================  ========  ===========================================================
-    Parameter           Required  Description
-    ==================  ========  ===========================================================
-    AXIOMS_AUDIENCE     Yes       Expected audience claim in the JWT token.
-    AXIOMS_JWKS_URL     No        Full URL to JWKS endpoint (e.g.,
-                                  https://my-auth.domain.com/oauth2/.well-known/jwks.json).
-                                  If provided, this takes precedence over AXIOMS_DOMAIN.
-    AXIOMS_DOMAIN       No        Axioms domain name. If AXIOMS_JWKS_URL is not provided,
-                                  the JWKS URL will be constructed as:
-                                  https://{AXIOMS_DOMAIN}/oauth2/.well-known/jwks.json
-    ==================  ========  ===========================================================
-
-Note:
-    Either AXIOMS_JWKS_URL or AXIOMS_DOMAIN must be configured for token validation.
-"""
+"""Token validation and JWT verification."""
 
 import json
 import ssl

@@ -98,7 +98,7 @@ The SDK supports the following configuration options:
 * ``AXIOMS_JWKS_URL`` (optional): Full URL to your JWKS endpoint
 * ``AXIOMS_DOMAIN`` (optional): Your auth domain
 
-.. note::
+.. important::
    You must provide either ``AXIOMS_JWKS_URL`` or ``AXIOMS_DOMAIN``.
 
 Guard Your Flask API Views
