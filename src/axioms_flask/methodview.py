@@ -14,7 +14,8 @@ class MethodView(MethodView):
     Attributes:
         _decorators: Dictionary mapping HTTP method names to lists of decorators.
 
-    Example:
+    Example::
+
         class UserAPI(MethodView):
             decorators = [has_valid_access_token]  # applies to all methods
             _decorators = {

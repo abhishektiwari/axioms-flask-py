@@ -43,9 +43,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/axioms-io/axioms-flask-py"
-Source = "https://github.com/axioms-io/axioms-flask-py"
-Tracker = "https://github.com/axioms-io/axioms-flask-py/issues"
+Documentation = "https://github.com/abhishektiwari/axioms-flask-py"
+Source = "https://github.com/abhishektiwari/axioms-flask-py"
+Tracker = "https://github.com/abhishektiwari/axioms-flask-py/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -55,6 +55,10 @@ dev = [
     "pytest-cov>=4.0.0",
     "build>=1.0.0",
     "twine>=4.0.0",
+    "sphinx>=7.0.0",
+    "sphinx-book-theme>=1.0.0",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinx-copybutton>=0.5.0",
 ]
 
 [tool.setuptools]

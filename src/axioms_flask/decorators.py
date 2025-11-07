@@ -43,7 +43,8 @@ def has_required_scopes(*required_scopes):
     Raises:
         AxiomsError: If token is missing or doesn't contain required scopes.
 
-    Example:
+    Example::
+
         @app.route('/api/resource')
         @has_required_scopes('read:resource', 'write:resource')
         def protected_route():
@@ -91,7 +92,8 @@ def has_required_roles(*view_roles):
     Raises:
         AxiomsError: If token is missing or doesn't contain required roles.
 
-    Example:
+    Example::
+
         @app.route('/admin/users')
         @has_required_roles('admin', 'superuser')
         def admin_route():
@@ -151,7 +153,8 @@ def has_required_permissions(*view_permissions):
     Raises:
         AxiomsError: If token is missing or doesn't contain required permissions.
 
-    Example:
+    Example::
+
         @app.route('/api/delete')
         @has_required_permissions('resource:delete')
         def delete_route():
@@ -217,7 +220,8 @@ def has_valid_access_token(fn):
         AxiomsError: If token is missing or invalid.
         Exception: If required config is not set.
 
-    Example:
+    Example::
+
         @app.route('/api/protected')
         @has_valid_access_token
         def protected_route():
