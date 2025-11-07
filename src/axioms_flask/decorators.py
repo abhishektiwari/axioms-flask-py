@@ -230,14 +230,14 @@ def has_valid_access_token(fn):
         # Check AXIOMS_AUDIENCE
         if "AXIOMS_AUDIENCE" not in app.config:
             raise Exception(
-                "🔥🔥 Please set AXIOMS_AUDIENCE in your config. "
+                "Please set AXIOMS_AUDIENCE in your config. "
                 "For more details review axioms-flask-py docs."
             )
 
         # Check for JWKS URL or domain
         if "AXIOMS_JWKS_URL" not in app.config and "AXIOMS_DOMAIN" not in app.config:
             raise Exception(
-                "🔥🔥 Please set either AXIOMS_JWKS_URL or AXIOMS_DOMAIN in your config. "
+                "Please set either AXIOMS_JWKS_URL or AXIOMS_DOMAIN in your config. "
                 "For more details review axioms-flask-py docs."
             )
         token = has_bearer_token(request)
