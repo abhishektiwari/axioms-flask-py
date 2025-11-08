@@ -355,7 +355,7 @@ class TestRoleAuthorization:
 
     def test_role_with_namespaced_claims(self, client, test_key, app):
         """Test role checking with namespaced claims."""
-        app.config['AXIOMS_DOMAIN'] = 'test-domain.com'
+        app.config['AXIOMS_ROLES_CLAIMS'] = ['roles', 'https://test-domain.com/claims/roles']
 
         now = int(time.time())
         claims = json.dumps({
@@ -478,7 +478,7 @@ class TestPermissionAuthorization:
 
     def test_permission_with_namespaced_claims(self, client, test_key, app):
         """Test permission checking with namespaced claims."""
-        app.config['AXIOMS_DOMAIN'] = 'test-domain.com'
+        app.config['AXIOMS_PERMISSIONS_CLAIMS'] = ['permissions', 'https://test-domain.com/claims/permissions']
 
         now = int(time.time())
         claims = json.dumps({

@@ -1,6 +1,8 @@
 # axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
 OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens.
 
+Works with access tokens issued by various authorization servers including [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html), [Auth0](https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles), [Okta](https://developer.okta.com/docs/api/oauth2/), [Microsoft Entra](https://learn.microsoft.com/en-us/security/zero-trust/develop/configure-tokens-group-claims-app-roles), etc.
+
 ![GitHub Release](https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py)
 ![GitHub Actions Test Workflow Status](https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests)
 ![PyPI - Version](https://img.shields.io/pypi/v/axioms-flask-py)
@@ -10,6 +12,16 @@ OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentica
 ![PyPI - Status](https://img.shields.io/pypi/status/axioms-flask-py)
 ![License](https://img.shields.io/github/license/abhishektiwari/axioms-flask-py)
 ![PyPI Downloads](https://img.shields.io/pepy/dt/axioms-flask-py?label=PyPI%20Downloads)
+
+## Features
+
+* JWT token validation with automatic public key retrieval from JWKS endpoints
+* Algorithm validation to prevent algorithm confusion attacks (only secure asymmetric algorithms allowed)
+* Issuer validation (`iss` claim) to prevent token substitution attacks
+* Authorization decorators for standard claims: scopes, roles, and permissions
+* Flexible configuration with support for custom JWKS and issuer URLs
+* Simple integration with Flask based Resource Server or API backends
+* Support for custom claim and/or namespaced claims names to support different authorization servers
 
 ## Prerequisite
 
@@ -38,31 +50,27 @@ pip install axioms-flask-py
 ```
 
 ### Add environment variables
-Create a `.env` file and add following configs
+Create a `.env` file and add following configs (see [.env.example](https://github.com/abhishektiwari/axioms-flask-py/blob/main/.env.example) for reference)
 
-**Option 1: Using AXIOMS_DOMAIN** (for Axioms or standard OAuth2/OIDC providers)
+Option 1: Using AXIOMS_DOMAIN (Recommended - simplest configuration)
 ```bash title=".env"
+AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
 AXIOMS_DOMAIN=<your-axioms-slug>.axioms.io
-AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
 ```
 
-**Option 2: Using AXIOMS_JWKS_URL** (for custom JWKS endpoints)
+Option 2: Custom issuer URL (when your issuer includes a path)
 ```bash title=".env"
-AXIOMS_JWKS_URL=https://my-auth.domain.com/oauth2/.well-known/jwks.json
 AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
+AXIOMS_ISS_URL=https://my-auth.domain.com/oauth2
 ```
 
-**Configuration Options:**
-- `AXIOMS_AUDIENCE` (required): Your resource identifier or API audience
-- `AXIOMS_JWKS_URL` (optional): Full URL to your JWKS endpoint
-- `AXIOMS_DOMAIN` (optional): Your auth domain (e.g., `my-auth.domain.com`)
+Option 3: Explicit JWKS URL (for non-standard JWKS endpoints)
+```bash title=".env"
+AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
+AXIOMS_JWKS_URL=https://my-auth.domain.com/.well-known/jwks.json
+```
 
-**Note:** You must provide either `AXIOMS_JWKS_URL` or `AXIOMS_DOMAIN`.
-
-**Claims Handling:**
-- Roles are checked from `roles` claim, or `https://{AXIOMS_DOMAIN}/claims/roles` if using namespaced claims
-- Permissions are checked from `permissions` claim, or `https://{AXIOMS_DOMAIN}/claims/permissions` if using namespaced claims
-- Scopes are checked from the standard `scope` claim
+For more information see [API documentation](https://axioms-flask-py.abhishek-tiwari.com/).
 
 ### Load environment variables
 In your Flask app file (where flask app is declared) add following.
@@ -97,16 +105,16 @@ Use following decorators to guard you API views.
 
 | Decorators | Description | Parameter |
 | -- | -- | -- |
-| `axioms_flask.decorators.`<br/>`has_valid_access_token` | Checks if API request includes a valid bearer access token as authorization header. Check performed includes: token signature validation, expiry datetime validation, and token audience validation. Should be always the `first` decorator on the protected or private view. |  |
+| `axioms_flask.decorators.`<br/>`has_valid_access_token` | Checks if API request includes a valid bearer access token as authorization header. Check performed includes: token signature validation, expiry datetime validation, token audience validation, and issuer validation (if configured). Should be always the `first` decorator on the protected or private view. |  |
 | `axioms_flask.decorators.`<br/>`has_required_scopes` | Check any of the given scopes included in `scope` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed scope or scopes for the view as parameter. For instance, to check `openid` or `profile` pass `['profile', 'openid']` as parameter. |
 | `axioms_flask.decorators.`<br/>`has_required_roles` | Check any of the given roles included in `roles` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed role or roles for the view as parameter. For instance, to check `sample:role1` or `sample:role2` roles you will pass `['sample:role1', 'sample:role2']` as parameter. |
 | `axioms_flask.decorators.`<br/>`has_required_permissions` | Check any of the given permissions included in `permissions` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed permission or permissions for the view as parameter. For instance, to check `sample:create` or `sample:update` permissions you will pass `['sample:create', 'sample:update']` as parameter. |
 
 #### OR vs AND Logic
 
-By default, authorization decorators use **OR logic** - the token must have **at least ONE** of the specified claims. To require **ALL claims (AND logic)**, chain multiple decorators.
+By default, authorization decorators use OR logic - the token must have at least ONE of the specified claims. To require ALL claims (AND logic), chain multiple decorators.
 
-**OR Logic (Default)** - Requires ANY of the specified claims:
+OR Logic (Default) - Requires ANY of the specified claims:
 
 ```python
 @app.route('/api/resource')
@@ -124,7 +132,7 @@ def admin_route():
     return {'users': []}
 ```
 
-**AND Logic (Chaining)** - Requires ALL of the specified claims:
+AND Logic (Chaining) - Requires ALL of the specified claims:
 
 ```python
 @app.route('/api/strict')
@@ -144,7 +152,7 @@ def critical_route():
     return {'message': 'requires both roles'}
 ```
 
-**Mixed Logic** - Combine OR and AND by chaining:
+Mixed Logic - Combine OR and AND by chaining:
 
 ```python
 @app.route('/api/advanced')

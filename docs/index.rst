@@ -3,6 +3,8 @@ Welcome to axioms-flask-py documentation!
 
 OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens.
 
+Works with access token issued by various authorization servers including `AWS Cognito <https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html>`_, `Auth0 <https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles>`_, `Okta <https://developer.okta.com/docs/api/oauth2/>`_, `Microsoft Entra <https://learn.microsoft.com/en-us/security/zero-trust/develop/configure-tokens-group-claims-app-roles>`_, etc.
+
 .. image:: https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py
    :alt: GitHub Release
    :target: https://github.com/abhishektiwari/axioms-flask-py/releases
@@ -34,12 +36,12 @@ Features
 --------
 
 * JWT token validation with automatic public key retrieval from JWKS endpoints
-* Scope-based authorization decorators
-* Role-based authorization decorators
-* Permission-based authorization decorators
-* Flexible configuration with support for custom JWKS URLs
-* Simple integration with Flask applications
-* Support for both standard and namespaced claims
+* Algorithm validation to prevent algorithm confusion attacks (only secure asymmetric algorithms allowed)
+* Issuer validation (``iss`` claim) to prevent token substitution attacks
+* Authorization decorators for standard claims: scopes, roles, and permissions
+* Flexible configuration with support for custom JWKS and issuer URLs
+* Simple integration with Flask based Resource Server or API backends
+* Support for custom claim and/or namespaced claims names to support different authorization servers
 
 Installation
 ------------
@@ -63,14 +65,16 @@ Quick Start
    app = Flask(__name__)
    env = DotEnv(app)
 
-2. Create a ``.env`` file with your configuration:
+2. Create a ``.env`` file with your configuration (see `.env.example <https://github.com/abhishektiwari/axioms-flask-py/blob/main/.env.example>`_ for reference):
 
 .. code-block:: bash
 
    AXIOMS_AUDIENCE=your-api-audience
-   AXIOMS_JWKS_URL=https://your-auth.domain.com/oauth2/.well-known/jwks.json
-   # OR
-   AXIOMS_DOMAIN=your-auth.domain.com
+   AXIOMS_DOMAIN=your-auth.domain.com  # Simplest option - constructs issuer and JWKS URLs
+
+   # OR for custom configurations:
+   # AXIOMS_ISS_URL=https://your-auth.domain.com/oauth2
+   # AXIOMS_JWKS_URL=https://your-auth.domain.com/.well-known/jwks.json
 
 3. Use decorators to protect your routes:
 
@@ -95,11 +99,19 @@ Configuration
 The SDK supports the following configuration options:
 
 * ``AXIOMS_AUDIENCE`` (required): Your resource identifier or API audience
+* ``AXIOMS_DOMAIN`` (optional): Your auth domain - constructs issuer and JWKS URLs
+* ``AXIOMS_ISS_URL`` (optional): Full issuer URL for validating the ``iss`` claim (recommended for security)
 * ``AXIOMS_JWKS_URL`` (optional): Full URL to your JWKS endpoint
-* ``AXIOMS_DOMAIN`` (optional): Your auth domain
+
+**Configuration Hierarchy:**
+
+1. ``AXIOMS_DOMAIN`` → constructs → ``AXIOMS_ISS_URL`` (if not explicitly set)
+2. ``AXIOMS_ISS_URL`` → constructs → ``AXIOMS_JWKS_URL`` (if not explicitly set)
 
 .. important::
-   You must provide either ``AXIOMS_JWKS_URL`` or ``AXIOMS_DOMAIN``.
+   You must provide at least one of: ``AXIOMS_DOMAIN``, ``AXIOMS_ISS_URL``, or ``AXIOMS_JWKS_URL``.
+
+   For most use cases, setting only ``AXIOMS_DOMAIN`` is sufficient. The SDK will automatically construct the issuer URL and JWKS endpoint URL.
 
 Guard Your Flask API Views
 ---------------------------
@@ -114,7 +126,7 @@ Use the following decorators to protect your API views:
      - Description
      - Parameters
    * - ``has_valid_access_token``
-     - Checks if API request includes a valid bearer access token as authorization header. Performs token signature validation, expiry datetime validation, and token audience validation. Should be always the **first** decorator on the protected or private view.
+     - Checks if API request includes a valid bearer access token as authorization header. Performs token signature validation, expiry datetime validation, token audience validation, and issuer validation (if configured). Should be always the **first** decorator on the protected or private view.
      - None
    * - ``has_required_scopes``
      - Check any of the given scopes included in ``scope`` claim of the access token. Should be after ``has_valid_access_token``.
