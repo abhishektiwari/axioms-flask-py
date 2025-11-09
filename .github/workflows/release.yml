@@ -169,7 +169,7 @@ jobs:
           
           **PIP:**
           ```bash
-          pip install https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.github_tag }}/axioms-flask-py-${{ needs.generate-version.outputs.version }}-py3-none-any.whl
+          pip install https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.github_tag }}/axioms_flask_py-${{ needs.generate-version.outputs.version }}-py3-none-any.whl
           ```
           
           **PyPI:**
