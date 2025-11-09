@@ -1,4 +1,11 @@
-"""Decorators for Flask route authentication and authorization."""
+"""Decorators for Flask route authentication and authorization.
+
+This module provides decorators for protecting Flask routes with JWT-based authentication
+and authorization. Supports scope-based, role-based, and permission-based access control
+with configurable claim names for different authorization servers.
+
+For complete configuration documentation, see the Configuration section in the API reference.
+"""
 
 from functools import wraps
 from flask import request
@@ -10,6 +17,7 @@ from .token import (
     check_scopes,
     check_roles,
     check_permissions,
+    get_claim_from_token,
 )
 
 
@@ -58,7 +66,11 @@ def has_required_scopes(*required_scopes):
                     },
                     401,
                 )
-            if check_scopes(payload.scope, required_scopes[0]):
+
+            # Get scope from configured claim names
+            token_scope = get_claim_from_token(payload, 'SCOPE') or ''
+
+            if check_scopes(token_scope, required_scopes[0]):
                 return fn(*args, **kwargs)
             raise AxiomsError(
                 {
@@ -119,16 +131,8 @@ def has_required_roles(*view_roles):
                     401,
                 )
 
-            # Check for roles in standard claim first, then namespaced claim
-            token_roles = getattr(payload, "roles", None)
-            if token_roles is None and app.config.get("AXIOMS_DOMAIN"):
-                token_roles = getattr(
-                    payload,
-                    "https://{}/claims/roles".format(app.config["AXIOMS_DOMAIN"]),
-                    [],
-                )
-            if token_roles is None:
-                token_roles = []
+            # Get roles from configured claim names
+            token_roles = get_claim_from_token(payload, 'ROLES') or []
 
             if check_roles(token_roles, view_roles[0]):
                 return fn(*args, **kwargs)
@@ -191,16 +195,8 @@ def has_required_permissions(*view_permissions):
                     401,
                 )
 
-            # Check for permissions in standard claim first, then namespaced claim
-            token_permissions = getattr(payload, "permissions", None)
-            if token_permissions is None and app.config.get("AXIOMS_DOMAIN"):
-                token_permissions = getattr(
-                    payload,
-                    "https://{}/claims/permissions".format(app.config["AXIOMS_DOMAIN"]),
-                    [],
-                )
-            if token_permissions is None:
-                token_permissions = []
+            # Get permissions from configured claim names
+            token_permissions = get_claim_from_token(payload, 'PERMISSIONS') or []
 
             if check_permissions(token_permissions, view_permissions[0]):
                 return fn(*args, **kwargs)
