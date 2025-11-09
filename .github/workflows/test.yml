@@ -30,3 +30,6 @@ jobs:
     
     - name: Format code
       run: make format
+
+    - name: Run tests
+      run: make test

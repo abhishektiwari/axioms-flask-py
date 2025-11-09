@@ -43,7 +43,7 @@ jobs:
         TIMESTAMP=$(date +%s)
 
         # Use PEP 440 compatible format with PR number and timestamp
-        PRERELEASE_VERSION="${BASE_VERSION}.rc${PR_NUMBER}${TIMESTAMP}"
+        PRERELEASE_VERSION="${BASE_VERSION}rc${PR_NUMBER}${TIMESTAMP}"
         PRERELEASE_TAG="v${PRERELEASE_VERSION}"
 
         # GitHub tag for releases (with PR number and timestamp)
@@ -202,7 +202,7 @@ jobs:
           
           **From GitHub Release:**
           \`\`\`bash
-          pip install https://github.com/${{ github.repository }}/releases/download/${tag}/axioms-flask-py-${version}-py3-none-any.whl
+          pip install https://github.com/${{ github.repository }}/releases/download/${tag}/axioms_flask_py-${version}-py3-none-any.whl
           \`\`\`
           
           ### Available Artifacts
