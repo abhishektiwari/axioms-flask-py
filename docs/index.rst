@@ -5,6 +5,9 @@ OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentica
 
 Works with access token issued by various authorization servers including `AWS Cognito <https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html>`_, `Auth0 <https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles>`_, `Okta <https://developer.okta.com/docs/api/oauth2/>`_, `Microsoft Entra <https://learn.microsoft.com/en-us/security/zero-trust/develop/configure-tokens-group-claims-app-roles>`_, etc.
 
+.. note::
+   **Using FastAPI or Django REST Framework?** This package is specifically for Flask. For FastAPI applications, use `axioms-fastapi <https://github.com/abhishektiwari/axioms-fastapi>`_. For DRF applications, use `axioms-drf-py <https://github.com/abhishektiwari/axioms-drf-py>`_.
+
 .. image:: https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py
    :alt: GitHub Release
    :target: https://github.com/abhishektiwari/axioms-flask-py/releases
@@ -61,9 +64,11 @@ Quick Start
 
    from flask import Flask
    from flask_dotenv import DotEnv
+   from axioms_flask.error import register_axioms_error_handler
 
    app = Flask(__name__)
    env = DotEnv(app)
+   register_axioms_error_handler(app)
 
 2. Create a ``.env`` file with your configuration (see `.env.example <https://github.com/abhishektiwari/axioms-flask-py/blob/main/.env.example>`_ for reference):
 

@@ -10,12 +10,14 @@ For complete configuration documentation, see the Configuration section in the A
 import json
 import ssl
 import time
-import jwt
-from jwcrypto import jwk, jws
-from flask import request
-from flask import current_app as app
 from urllib.request import urlopen
+
+import jwt
 from box import Box
+from flask import current_app as app
+from flask import request
+from jwcrypto import jwk, jws
+
 from .error import AxiomsError
 
 
@@ -59,11 +61,19 @@ cache = SimpleCache()
 
 # Allowed signature algorithms for JWT validation
 # Only asymmetric algorithms are allowed to prevent algorithm confusion attacks
-ALLOWED_ALGORITHMS = frozenset([
-    'RS256', 'RS384', 'RS512',  # RSA with SHA-256, SHA-384, SHA-512
-    'ES256', 'ES384', 'ES512',  # ECDSA with SHA-256, SHA-384, SHA-512
-    'PS256', 'PS384', 'PS512',  # RSA-PSS with SHA-256, SHA-384, SHA-512
-])
+ALLOWED_ALGORITHMS = frozenset(
+    [
+        "RS256",
+        "RS384",
+        "RS512",  # RSA with SHA-256, SHA-384, SHA-512
+        "ES256",
+        "ES384",
+        "ES512",  # ECDSA with SHA-256, SHA-384, SHA-512
+        "PS256",
+        "PS384",
+        "PS512",  # RSA-PSS with SHA-256, SHA-384, SHA-512
+    ]
+)
 
 
 def get_claim_names(claim_type):
@@ -95,11 +105,7 @@ def get_claim_names(claim_type):
         return [app.config[single_config]]
 
     # Default claim names
-    defaults = {
-        'SCOPE': ['scope'],
-        'ROLES': ['roles'],
-        'PERMISSIONS': ['permissions']
-    }
+    defaults = {"SCOPE": ["scope"], "ROLES": ["roles"], "PERMISSIONS": ["permissions"]}
 
     return defaults.get(claim_type.upper(), [])
 
@@ -123,7 +129,11 @@ def get_claim_from_token(payload, claim_type):
         ['admin', 'editor']
     """
     for claim_name in get_claim_names(claim_type):
-        value = getattr(payload, claim_name.replace(':', '_').replace('/', '_').replace('-', '_'), None)
+        value = getattr(
+            payload,
+            claim_name.replace(":", "_").replace("/", "_").replace("-", "_"),
+            None,
+        )
         if value is None:
             # Try with original claim name (for standard claims)
             try:
@@ -254,7 +264,7 @@ def has_valid_token(token):
     # Validate issuer if configured
     expected_issuer = get_expected_issuer()
     if expected_issuer:
-        token_issuer = getattr(payload, 'iss', None)
+        token_issuer = getattr(payload, "iss", None)
         if not token_issuer:
             raise AxiomsError(
                 {
@@ -314,7 +324,7 @@ def get_payload_from_token(token, key, alg):
 
     # Verify that the algorithm in the token matches what we expect
     # This prevents algorithm substitution attacks
-    token_alg = jws_token.jose_header.get('alg')
+    token_alg = jws_token.jose_header.get("alg")
     if token_alg != alg:
         return None
 

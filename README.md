@@ -3,6 +3,8 @@ OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentica
 
 Works with access tokens issued by various authorization servers including [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html), [Auth0](https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles), [Okta](https://developer.okta.com/docs/api/oauth2/), [Microsoft Entra](https://learn.microsoft.com/en-us/security/zero-trust/develop/configure-tokens-group-claims-app-roles), etc.
 
+> **Using FastAPI or Django REST Framework?** This package is specifically for Flask. For FastAPI applications, use [axioms-fastapi](https://github.com/abhishektiwari/axioms-fastapi). For DRF applications, use [axioms-drf-py](https://github.com/abhishektiwari/axioms-drf-py).
+
 ![GitHub Release](https://img.shields.io/github/v/release/abhishektiwari/axioms-flask-py)
 ![GitHub Actions Test Workflow Status](https://img.shields.io/github/actions/workflow/status/abhishektiwari/axioms-flask-py/test.yml?label=tests)
 ![PyPI - Version](https://img.shields.io/pypi/v/axioms-flask-py)
@@ -80,24 +82,13 @@ from flask_dotenv import DotEnv
 env = DotEnv(app)
 ```
 
-### Register Error
-In your Flask app file (where flask app is declared) add following.
+### Register Error Handler
+In your Flask app file (where flask app is declared), register the error handler.
 
 ```py title="app.py"
-from flask import jsonify
-from axioms_flask.error import AxiomsError
+from axioms_flask.error import register_axioms_error_handler
 
-@app.errorhandler(AxiomsError)
-def handle_auth_error(ex):
-    response = jsonify(ex.error)
-    response.status_code = ex.status_code
-    if ex.status_code == 401:
-        response.headers[
-            "WWW-Authenticate"
-        ] = "Bearer realm='{}', error='{}', error_description='{}'".format(
-            app.config["AXIOMS_DOMAIN"], ex.error["error"], ex.error["error_description"]
-        )
-    return response
+register_axioms_error_handler(app)
 ```
 
 ### Guard Your Flask API Views
