@@ -15,7 +15,7 @@ from axioms_flask.decorators import (
     has_required_roles,
     has_required_permissions,
 )
-from axioms_flask.error import AxiomsError
+from axioms_flask.error import register_axioms_error_handler
 
 
 # Generate RSA key pair for testing
@@ -55,11 +55,10 @@ def app():
     flask_app.config['TESTING'] = True
     flask_app.config['AXIOMS_AUDIENCE'] = 'test-audience'
     flask_app.config['AXIOMS_JWKS_URL'] = 'https://test-domain.com/.well-known/jwks.json'
+    flask_app.config['AXIOMS_ISS_URL'] = 'https://test-domain.com'
 
-    # Error handler
-    @flask_app.errorhandler(AxiomsError)
-    def handle_axioms_error(error):
-        return jsonify(error.error), error.status_code
+    # Register error handler
+    register_axioms_error_handler(flask_app)
 
     # Public API Blueprint
     public_api = Blueprint("public_api", __name__)
@@ -220,6 +219,12 @@ class TestAuthentication:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data['error'] == 'unauthorized_access'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
     def test_private_endpoint_invalid_bearer(self, client):
         """Test that private endpoint rejects invalid bearer format."""
@@ -227,6 +232,12 @@ class TestAuthentication:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data['error'] == 'unauthorized_access'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
     def test_private_endpoint_with_valid_token(self, client, test_key):
         """Test that private endpoint accepts valid token with required scopes."""
@@ -234,6 +245,7 @@ class TestAuthentication:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile email',
             'exp': now + 3600,
             'iat': now
@@ -251,6 +263,7 @@ class TestAuthentication:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile email',
             'exp': now - 3600,  # Expired 1 hour ago
             'iat': now - 7200
@@ -261,6 +274,12 @@ class TestAuthentication:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data['error'] == 'unauthorized_access'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
     def test_private_endpoint_wrong_audience(self, client, test_key):
         """Test that private endpoint rejects token with wrong audience."""
@@ -278,6 +297,12 @@ class TestAuthentication:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data['error'] == 'unauthorized_access'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
 
 class TestScopeAuthorization:
@@ -289,6 +314,7 @@ class TestScopeAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile email',
             'exp': now + 3600,
             'iat': now
@@ -304,6 +330,7 @@ class TestScopeAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'email',  # Missing 'openid' and 'profile'
             'exp': now + 3600,
             'iat': now
@@ -314,6 +341,12 @@ class TestScopeAuthorization:
         assert response.status_code == 403
         data = json.loads(response.data)
         assert data['error'] == 'insufficient_permission'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
 
 class TestRoleAuthorization:
@@ -325,6 +358,7 @@ class TestRoleAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['admin', 'viewer'],
             'exp': now + 3600,
             'iat': now
@@ -342,6 +376,7 @@ class TestRoleAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['viewer'],  # Missing 'admin' or 'editor'
             'exp': now + 3600,
             'iat': now
@@ -352,6 +387,12 @@ class TestRoleAuthorization:
         assert response.status_code == 403
         data = json.loads(response.data)
         assert data['error'] == 'insufficient_permission'
+        # Check WWW-Authenticate header
+        assert 'WWW-Authenticate' in response.headers
+        auth_header = response.headers['WWW-Authenticate']
+        assert auth_header.startswith('Bearer realm=')
+        assert 'error=' in auth_header
+        assert 'error_description=' in auth_header
 
     def test_role_with_namespaced_claims(self, client, test_key, app):
         """Test role checking with namespaced claims."""
@@ -361,6 +402,7 @@ class TestRoleAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'https://test-domain.com/claims/roles': ['admin'],
             'exp': now + 3600,
             'iat': now
@@ -376,6 +418,7 @@ class TestRoleAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['admin'],  # Has required role but token is expired
             'exp': now - 3600,  # Expired 1 hour ago
             'iat': now - 7200
@@ -397,6 +440,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:create', 'sample:read'],
             'exp': now + 3600,
             'iat': now
@@ -414,6 +458,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:read'],  # Missing 'sample:create'
             'exp': now + 3600,
             'iat': now
@@ -431,6 +476,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:update'],
             'exp': now + 3600,
             'iat': now
@@ -448,6 +494,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:read'],
             'exp': now + 3600,
             'iat': now
@@ -465,6 +512,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:delete'],
             'exp': now + 3600,
             'iat': now
@@ -484,6 +532,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'https://test-domain.com/claims/permissions': ['sample:read'],
             'exp': now + 3600,
             'iat': now
@@ -499,6 +548,7 @@ class TestPermissionAuthorization:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:read'],  # Has required permission but token is expired
             'exp': now - 3600,  # Expired 1 hour ago
             'iat': now - 7200
@@ -520,6 +570,7 @@ class TestMultipleMethodsEndpoint:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['editor'],
             'exp': now + 3600,
             'iat': now
@@ -541,6 +592,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'read:resource write:resource other:scope',
             'exp': now + 3600,
             'iat': now
@@ -558,6 +610,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'read:resource other:scope',  # Missing write:resource
             'exp': now + 3600,
             'iat': now
@@ -575,6 +628,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'other:scope',  # Missing both read:resource and write:resource
             'exp': now + 3600,
             'iat': now
@@ -592,6 +646,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['admin', 'superuser', 'viewer'],
             'exp': now + 3600,
             'iat': now
@@ -609,6 +664,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'roles': ['admin', 'viewer'],  # Missing superuser
             'exp': now + 3600,
             'iat': now
@@ -626,6 +682,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:create', 'sample:delete', 'sample:read'],
             'exp': now + 3600,
             'iat': now
@@ -643,6 +700,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'permissions': ['sample:create', 'sample:read'],  # Missing sample:delete
             'exp': now + 3600,
             'iat': now
@@ -660,6 +718,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile email',
             'roles': ['editor', 'viewer'],
             'permissions': ['sample:read', 'sample:write'],
@@ -679,6 +738,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'profile email',  # Missing openid
             'roles': ['editor'],
             'permissions': ['sample:read'],
@@ -698,6 +758,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile',
             'roles': ['viewer'],  # Missing editor
             'permissions': ['sample:read'],
@@ -717,6 +778,7 @@ class TestChainingDecorators:
         claims = json.dumps({
             'sub': 'user123',
             'aud': ['test-audience'],
+            'iss': 'https://test-domain.com',
             'scope': 'openid profile',
             'roles': ['editor'],
             'permissions': ['sample:write'],  # Missing sample:read

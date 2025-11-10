@@ -80,24 +80,13 @@ from flask_dotenv import DotEnv
 env = DotEnv(app)
 ```
 
-### Register Error
-In your Flask app file (where flask app is declared) add following.
+### Register Error Handler
+In your Flask app file (where flask app is declared), register the error handler.
 
 ```py title="app.py"
-from flask import jsonify
-from axioms_flask.error import AxiomsError
+from axioms_flask.error import register_axioms_error_handler
 
-@app.errorhandler(AxiomsError)
-def handle_auth_error(ex):
-    response = jsonify(ex.error)
-    response.status_code = ex.status_code
-    if ex.status_code == 401:
-        response.headers[
-            "WWW-Authenticate"
-        ] = "Bearer realm='{}', error='{}', error_description='{}'".format(
-            app.config["AXIOMS_DOMAIN"], ex.error["error"], ex.error["error_description"]
-        )
-    return response
+register_axioms_error_handler(app)
 ```
 
 ### Guard Your Flask API Views

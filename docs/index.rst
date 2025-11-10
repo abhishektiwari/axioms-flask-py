@@ -61,9 +61,11 @@ Quick Start
 
    from flask import Flask
    from flask_dotenv import DotEnv
+   from axioms_flask.error import register_axioms_error_handler
 
    app = Flask(__name__)
    env = DotEnv(app)
+   register_axioms_error_handler(app)
 
 2. Create a ``.env`` file with your configuration (see `.env.example <https://github.com/abhishektiwari/axioms-flask-py/blob/main/.env.example>`_ for reference):
 

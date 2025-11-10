@@ -220,3 +220,4 @@ __marimo__/
 pip-wheel-metadata/*
 *.dist-info/
 src/axioms_flask/_version.py
+.DS_Store
