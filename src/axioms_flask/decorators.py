@@ -8,16 +8,18 @@ For complete configuration documentation, see the Configuration section in the A
 """
 
 from functools import wraps
-from flask import request
+
 from flask import current_app as app
+from flask import request
+
 from .error import AxiomsError
 from .token import (
+    check_permissions,
+    check_roles,
+    check_scopes,
+    get_claim_from_token,
     has_bearer_token,
     has_valid_token,
-    check_scopes,
-    check_roles,
-    check_permissions,
-    get_claim_from_token,
 )
 
 
@@ -68,7 +70,7 @@ def has_required_scopes(*required_scopes):
                 )
 
             # Get scope from configured claim names
-            token_scope = get_claim_from_token(payload, 'SCOPE') or ''
+            token_scope = get_claim_from_token(payload, "SCOPE") or ""
 
             if check_scopes(token_scope, required_scopes[0]):
                 return fn(*args, **kwargs)
@@ -132,7 +134,7 @@ def has_required_roles(*view_roles):
                 )
 
             # Get roles from configured claim names
-            token_roles = get_claim_from_token(payload, 'ROLES') or []
+            token_roles = get_claim_from_token(payload, "ROLES") or []
 
             if check_roles(token_roles, view_roles[0]):
                 return fn(*args, **kwargs)
@@ -196,7 +198,7 @@ def has_required_permissions(*view_permissions):
                 )
 
             # Get permissions from configured claim names
-            token_permissions = get_claim_from_token(payload, 'PERMISSIONS') or []
+            token_permissions = get_claim_from_token(payload, "PERMISSIONS") or []
 
             if check_permissions(token_permissions, view_permissions[0]):
                 return fn(*args, **kwargs)
