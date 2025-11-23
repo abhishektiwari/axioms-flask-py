@@ -1,29 +1,28 @@
 API Reference
 =============
 
-This page contains the full API reference for axioms-flask-py, automatically generated from the source code docstrings.
+This page contains the full API reference for ``axioms-flask-py``, automatically generated from the source code docstrings.
 
 Core Configuration
 ------------------
 
-The SDK requires the following environment variables to be configured:
+At minimum, ``axioms-flask-py`` requires the following environment variables to be configured. For full list of configuration options, see :ref:`core-configuration`.
 
 =====================  ========  =========================================================================
 Parameter              Required  Description
 =====================  ========  =========================================================================
 ``AXIOMS_AUDIENCE``    Yes       Expected audience claim in the JWT token.
-``AXIOMS_DOMAIN``      No        Axioms domain name. Used as the base to construct ``AXIOMS_ISS_URL``
-                                 if not explicitly provided. This is the simplest configuration option
-                                 for standard OAuth2/OIDC providers.
 ``AXIOMS_ISS_URL``     No        Full issuer URL for validating the ``iss`` claim in JWT tokens
                                  (e.g., ``https://auth.example.com/oauth2``). If not provided,
                                  constructed as ``https://{AXIOMS_DOMAIN}``. Used to construct
-                                 ``AXIOMS_JWKS_URL`` if that is not explicitly set. Recommended for
-                                 security to prevent token substitution attacks.
+                                 ``AXIOMS_JWKS_URL`` if that is not explicitly set. **Recommended**.
 ``AXIOMS_JWKS_URL``    No        Full URL to JWKS endpoint (e.g.,
-                                 ``https://auth.example.com/.well-known/jwks.json``).
+                                 ``https://auth.example.com/.well-known/jwks.json``). **Recommended**.
                                  If not provided, constructed as
                                  ``{AXIOMS_ISS_URL}/.well-known/jwks.json``
+``AXIOMS_DOMAIN``      No        Axioms domain name. Used as the base to construct ``AXIOMS_ISS_URL``
+                                 if not explicitly provided. This is the simplest configuration option
+                                 for standard OAuth2/OIDC providers. **Not recommended**.
 =====================  ========  =========================================================================
 
 .. important::
@@ -32,7 +31,7 @@ Parameter              Required  Description
 
     **Configuration Hierarchy:**
 
-    The SDK uses the following construction order:
+    The ``axioms-flask-py`` uses the following construction order:
 
     1. ``AXIOMS_DOMAIN`` → constructs → ``AXIOMS_ISS_URL`` (if not explicitly set)
     2. ``AXIOMS_ISS_URL`` → constructs → ``AXIOMS_JWKS_URL`` (if not explicitly set)
@@ -45,11 +44,11 @@ Parameter              Required  Description
 Security & Algorithm Validation
 --------------------------------
 
-The SDK implements multiple security best practices to prevent common JWT attacks:
+The ``axioms-flask-py`` implements multiple security best practices to prevent common JWT attacks:
 
 **Algorithm Validation**
 
-Only secure asymmetric algorithms are accepted for JWT signature verification. The SDK validates that:
+Only secure asymmetric algorithms are accepted for JWT signature verification. ``axioms-flask-py`` validates that:
 
 1. The ``alg`` header in the JWT specifies an allowed algorithm
 2. Each key is used with exactly one algorithm
@@ -112,7 +111,7 @@ Configure custom claim names to support different authorization servers (`AWS Co
 
    **Namespaced Claims:** You can specify namespaced claim names directly in the claim configuration lists.
 
-   The SDK will check claims in the order you specify them, using the first non-None value found.
+   The ``axioms-flask-py`` will check claims in the order you specify them, using the first non-None value found.
 
    Example: ``AXIOMS_ROLES_CLAIMS = ['roles', 'https://myapp.com/claims/roles', 'cognito:groups']``
 
@@ -130,10 +129,10 @@ You can set these environment variables using a ``.env`` file with Flask-DotEnv:
       # Required
       AXIOMS_AUDIENCE=your-api-audience-or-resource-identifier
 
-      # Option 1: Use AXIOMS_DOMAIN
-      AXIOMS_DOMAIN=your-domain.axioms.io
+      # Use AXIOMS_ISS_URL (recommended)
+      AXIOMS_ISS_URL=https://your-auth.domain.com
 
-      # Option 2: Use AXIOMS_JWKS_URL (takes precedence)
+      # Explicit JWKS URL (for non-standard JWKS endpoints)
       # AXIOMS_JWKS_URL=https://my-auth.domain.com/oauth2/.well-known/jwks.json
 
 3. Load the environment variables in your Flask app:
@@ -151,6 +150,7 @@ Alternatively, you can set environment variables directly in your application:
 .. code-block:: python
 
    app.config['AXIOMS_AUDIENCE'] = 'your-api-audience'
+   app.config['AXIOMS_ISS_URL'] = 'https://your-auth.domain.com'
    app.config['AXIOMS_JWKS_URL'] = 'https://my-auth.domain.com/oauth2/.well-known/jwks.json'
 
 
@@ -158,27 +158,21 @@ Alternatively, you can set environment variables directly in your application:
 Decorators
 ----------
 
-The decorators module provides Flask route decorators for authentication and authorization.
-
 .. automodule:: axioms_flask.decorators
    :members:
    :undoc-members:
    :show-inheritance:
 
-Token Validation
-----------------
+Middelware
+----------
 
-The token module handles JWT token validation and verification.
-
-.. automodule:: axioms_flask.token
+.. automodule:: axioms_flask.middleware
    :members:
    :undoc-members:
    :show-inheritance:
 
 Error Handling
 --------------
-
-The error module defines custom exceptions for authentication and authorization errors.
 
 .. automodule:: axioms_flask.error
    :members:

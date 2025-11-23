@@ -1,4 +1,5 @@
 # axioms-flask-py ![PyPI](https://img.shields.io/pypi/v/axioms-flask-py) ![Pepy Total Downloads](https://img.shields.io/pepy/dt/axioms-flask-py)
+
 OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens.
 
 Works with access tokens issued by various authorization servers including [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html), [Auth0](https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles), [Okta](https://developer.okta.com/docs/api/oauth2/), [Microsoft Entra](https://learn.microsoft.com/en-us/security/zero-trust/develop/configure-tokens-group-claims-app-roles), etc.
@@ -17,216 +18,156 @@ Works with access tokens issued by various authorization servers including [AWS 
 
 ## Features
 
-* JWT token validation with automatic public key retrieval from JWKS endpoints
-* Algorithm validation to prevent algorithm confusion attacks (only secure asymmetric algorithms allowed)
-* Issuer validation (`iss` claim) to prevent token substitution attacks
-* Authorization decorators for standard claims: scopes, roles, and permissions
-* Flexible configuration with support for custom JWKS and issuer URLs
-* Simple integration with Flask based Resource Server or API backends
-* Support for custom claim and/or namespaced claims names to support different authorization servers
+- JWT token validation with automatic JWKS retrieval and refresh
+- Algorithm validation (only secure asymmetric algorithms allowed)
+- Issuer validation to prevent token substitution attacks
+- Middleware for automatic token extraction and validation
+- Authorization decorators: scopes, roles, permissions
+- Object-level permissions for row-level security
+- Custom claim name support for different auth servers
+- Safe methods support (e.g., OPTIONS for CORS)
 
-## Prerequisite
+## Installation
 
-* Python 3.7+
-* An OAuth2/OIDC client which can obtain access token after user's authentication and authorization and include obtained access token as bearer in `Authorization` header of all API request sent to Python/Flask application server.
-
-## Install SDK
-Install `axioms-flask-py` in you Flask API project,
-
-```
+```bash
 pip install axioms-flask-py
 ```
 
-## Documentation
+## Quick Start
 
-### Prerequisite
+**1. Configure Flask app:**
 
-- Python 3.7+
-- An Axioms client which can obtain access token after user's authentication and authorization and include obtained access token as bearer in `Authorization` header of all API request sent to Python/Flask application server.
-
-### Install SDK
-Install `axioms-flask-py` in you Flask API project,
-
-```
-pip install axioms-flask-py
-```
-
-### Add environment variables
-Create a `.env` file and add following configs (see [.env.example](https://github.com/abhishektiwari/axioms-flask-py/blob/main/.env.example) for reference)
-
-Option 1: Using AXIOMS_DOMAIN (Recommended - simplest configuration)
-```bash title=".env"
-AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
-AXIOMS_DOMAIN=<your-axioms-slug>.axioms.io
-```
-
-Option 2: Custom issuer URL (when your issuer includes a path)
-```bash title=".env"
-AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
-AXIOMS_ISS_URL=https://my-auth.domain.com/oauth2
-```
-
-Option 3: Explicit JWKS URL (for non-standard JWKS endpoints)
-```bash title=".env"
-AXIOMS_AUDIENCE=<your-axioms-resource-identifier-or-endpoint>
-AXIOMS_JWKS_URL=https://my-auth.domain.com/.well-known/jwks.json
-```
-
-For more information see [API documentation](https://axioms-flask-py.abhishek-tiwari.com/).
-
-### Load environment variables
-In your Flask app file (where flask app is declared) add following.
-
-```py title="app.py"
+```python
+from flask import Flask
 from flask_dotenv import DotEnv
+from axioms_flask import init_axioms, setup_token_middleware, register_axioms_error_handler
+
+app = Flask(__name__)
 env = DotEnv(app)
-```
 
-### Register Error Handler
-In your Flask app file (where flask app is declared), register the error handler.
-
-```py title="app.py"
-from axioms_flask.error import register_axioms_error_handler
-
+init_axioms(app)
+setup_token_middleware(app)  # Optional: automatic token validation
 register_axioms_error_handler(app)
 ```
 
-### Guard Your Flask API Views
-Use following decorators to guard you API views.
+**2. Configure environment (`.env`):**
 
-| Decorators | Description | Parameter |
-| -- | -- | -- |
-| `axioms_flask.decorators.`<br/>`has_valid_access_token` | Checks if API request includes a valid bearer access token as authorization header. Check performed includes: token signature validation, expiry datetime validation, token audience validation, and issuer validation (if configured). Should be always the `first` decorator on the protected or private view. |  |
-| `axioms_flask.decorators.`<br/>`has_required_scopes` | Check any of the given scopes included in `scope` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed scope or scopes for the view as parameter. For instance, to check `openid` or `profile` pass `['profile', 'openid']` as parameter. |
-| `axioms_flask.decorators.`<br/>`has_required_roles` | Check any of the given roles included in `roles` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed role or roles for the view as parameter. For instance, to check `sample:role1` or `sample:role2` roles you will pass `['sample:role1', 'sample:role2']` as parameter. |
-| `axioms_flask.decorators.`<br/>`has_required_permissions` | Check any of the given permissions included in `permissions` claim of the access token. Should be after `has_valid_access_token`. | An array of strings as `conditional OR` representing any of the allowed permission or permissions for the view as parameter. For instance, to check `sample:create` or `sample:update` permissions you will pass `['sample:create', 'sample:update']` as parameter. |
+```bash
+AXIOMS_AUDIENCE=your-api-audience
+AXIOMS_ISS_URL=https://your-auth.domain.com
+```
 
-#### OR vs AND Logic
+**3. Protect routes:**
 
-By default, authorization decorators use OR logic - the token must have at least ONE of the specified claims. To require ALL claims (AND logic), chain multiple decorators.
+```python
+from axioms_flask.decorators import has_valid_access_token, has_required_permissions
 
-OR Logic (Default) - Requires ANY of the specified claims:
+@app.route('/api/protected')
+@has_valid_access_token
+def protected():
+    return {'message': 'Authenticated'}
+
+@app.route('/api/admin')
+@has_valid_access_token
+@has_required_permissions(['admin:write'])
+def admin():
+    return {'message': 'Authorized'}
+```
+
+## Available Decorators
+
+| Decorator | Purpose |
+|-----------|---------|
+| `has_valid_access_token` | Validates JWT token (signature, expiry, audience, issuer) |
+| `has_required_scopes` | Requires specific scopes in token |
+| `has_required_roles` | Requires specific roles in token |
+| `has_required_permissions` | Requires specific permissions in token |
+| `check_object_ownership` | Validates user owns the resource (row-level security) |
+| `require_ownership` | Simpler ownership check for pre-fetched objects |
+
+## Authorization Logic
+
+**OR Logic (default)** - Requires ANY of the specified claims:
 
 ```python
 @app.route('/api/resource')
 @has_valid_access_token
-@has_required_scopes(['read:resource', 'write:resource'])
-def resource_route():
-    # User needs EITHER 'read:resource' OR 'write:resource' scope
+@has_required_scopes(['read', 'write'])  # Needs read OR write
+def resource():
     return {'data': 'success'}
+```
 
-@app.route('/admin/users')
+**AND Logic** - Chain decorators to require ALL claims:
+
+```python
+@app.route('/api/admin')
+@has_valid_access_token
+@has_required_scopes(['read'])      # Needs read
+@has_required_scopes(['write'])     # AND write
+@has_required_roles(['admin'])      # AND admin role
+def admin():
+    return {'data': 'authorized'}
+```
+
+## Examples
+
+**Scopes:**
+```python
+@app.route('/api/data')
+@has_valid_access_token
+@has_required_scopes(['openid', 'profile'])
+def get_data():
+    return {'data': 'User data'}
+```
+
+**Roles:**
+```python
+@app.route('/api/admin/users')
 @has_valid_access_token
 @has_required_roles(['admin', 'superuser'])
-def admin_route():
-    # User needs EITHER 'admin' OR 'superuser' role
+def manage_users():
     return {'users': []}
 ```
 
-AND Logic (Chaining) - Requires ALL of the specified claims:
-
+**Permissions:**
 ```python
-@app.route('/api/strict')
+@app.route('/api/posts', methods=['POST'])
 @has_valid_access_token
-@has_required_scopes(['read:resource'])
-@has_required_scopes(['write:resource'])
-def strict_route():
-    # User needs BOTH 'read:resource' AND 'write:resource' scopes
-    return {'data': 'requires both scopes'}
-
-@app.route('/admin/critical')
-@has_valid_access_token
-@has_required_roles(['admin'])
-@has_required_roles(['superuser'])
-def critical_route():
-    # User needs BOTH 'admin' AND 'superuser' roles
-    return {'message': 'requires both roles'}
+@has_required_permissions(['posts:create'])
+def create_post():
+    return {'id': 1, 'message': 'Post created'}
 ```
 
-Mixed Logic - Combine OR and AND by chaining:
-
+**Object Ownership (Row-level security):**
 ```python
-@app.route('/api/advanced')
+from axioms_flask.decorators import check_object_ownership
+
+def get_article(article_id):
+    return Article.query.get_or_404(article_id)
+
+@app.route('/articles/<int:article_id>', methods=['PATCH'])
 @has_valid_access_token
-@has_required_scopes(['openid', 'profile'])  # Needs openid OR profile
-@has_required_roles(['editor'])               # AND must have editor role
-@has_required_permissions(['resource:read', 'resource:write'])  # AND read OR write permission
-def advanced_route():
-    # User needs: (openid OR profile) AND (editor) AND (read OR write)
-    return {'data': 'complex authorization'}
+@check_object_ownership(get_article, inject_as='article')
+def update_article(article_id, article):
+    # Only owner can update (article.user must match token.sub)
+    article.title = request.json.get('title')
+    db.session.commit()
+    return {'id': article.id}
 ```
 
-### Examples
-
-- Check `openid` or `profile` scope present in the token
-
-```py
-from axioms_flask.decorators import has_valid_access_token, has_required_scopes
-
-private_api = Blueprint("private_api", __name__)
-
-@private_api.route('/private', methods=["GET"])
-@has_valid_access_token
-@has_required_scopes(['openid', 'profile'])
-def api_private():
-    return jsonify({'message': 'All good. You are authenticated!'})
+**CORS Support:**
+```python
+@app.route('/api/resource', methods=['GET', 'OPTIONS'])
+@has_valid_access_token  # OPTIONS bypassed by default
+@has_required_scopes(['read'])
+def resource():
+    return {'data': 'success'}
 ```
 
-- Check `sample:role` role present in the token
+## Documentation
 
-```py
-from axioms_flask.decorators import has_valid_access_token, has_required_roles
+Full documentation: [https://axioms-flask-py.abhishek-tiwari.com](https://axioms-flask-py.abhishek-tiwari.com)
 
-role_api = Blueprint("role_api", __name__)
+## License
 
-@role_api.route("/role", methods=["GET", "POST", "PATCH", "DELETE"])
-@has_valid_access_token
-@has_required_roles(["sample:role"])
-def sample_role():
-    if request.method == 'POST':
-        return jsonify({"message": "Sample created."})
-    if request.method == 'PATCH':
-        return jsonify({"message": "Sample updated."})
-    if request.method == 'GET':
-        return jsonify({"message": "Sample read."})
-    if request.method == 'DELETE':
-        return jsonify({"message": "Sample deleted."})
-```
-
-- Check permission present in the token at API method level
-
-```py
-from axioms_flask.decorators import has_valid_access_token, has_required_permissions
-
-permission_api = Blueprint("permission_api", __name__)
-
-@permission_api.route("/permission", methods=["POST"])
-@has_valid_access_token
-@has_required_permissions(["sample:create"])
-def sample_create():
-    return jsonify({"message": "Sample created."})
-
-
-@permission_api.route("/permission", methods=["PATCH"])
-@has_valid_access_token
-@has_required_permissions(["sample:update"])
-def sample_update():
-    return jsonify({"message": "Sample updated."})
-
-
-@permission_api.route("/permission", methods=["GET"])
-@has_valid_access_token
-@has_required_permissions(["sample:read"])
-def sample_read():
-    return jsonify({"message": "Sample read."})
-
-
-@permission_api.route("/permission", methods=["DELETE"])
-@has_valid_access_token
-@has_required_permissions(["sample:delete"])
-def sample_delete():
-    return jsonify({"message": "Sample deleted."})
-```
-
-## Flask Sample
-To see a complete working example download [Flask sample](https://github.com/axioms-io/sample-python-flask) from our Github repository or simply deploy to heroku by clicking following button. You will need to provide Axioms domain and Axioms audience to complete deployment.
+MIT License - see LICENSE file for details.

@@ -11,7 +11,7 @@ authors = [
 description = "OAuth2/OIDC authentication and authorization for Flask APIs. Supports authentication and claim-based fine-grained authorization (scopes, roles, permissions) using JWT tokens."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = ["axioms", "authentication", "authorization", "iam", "authz", "authn", "jwt", "openid", "oauth2"]
 
 classifiers = [
@@ -25,19 +25,15 @@ classifiers = [
     "Topic :: System :: Systems Administration :: Authentication/Directory",
     "Framework :: Flask",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 dependencies = [
-    "pyjwt",
-    "jwcrypto",
-    "python-box",
+    "axioms-core-py>=0.0.3",
     "Flask",
     "Flask-DotEnv",
 ]
@@ -68,6 +64,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+axioms_flask = ["py.typed"]
 
 [tool.setuptools_scm]
 write_to = "src/axioms_flask/_version.py"

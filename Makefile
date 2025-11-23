@@ -60,7 +60,7 @@ docs-serve: docs
 	cd docs/_build/html && python -m http.server 8000
 
 docs-watch:
-	@echo "Starting auto-build documentation server at http://localhost:8000"
+	@echo "Starting auto-build documentation server at http://localhost:8010"
 	@echo "Documentation will rebuild automatically when you save changes"
 	@echo "Press Ctrl+C to stop"
-	sphinx-autobuild docs docs/_build/html --port 8000 --watch src/
+	sphinx-autobuild docs docs/_build/html --port 8010 --watch src/
