@@ -138,7 +138,7 @@ class TestIssuerValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert (
             data["error_description"] == "Invalid access token"
         )  # Generic error from core
@@ -164,7 +164,7 @@ class TestIssuerValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert (
             data["error_description"] == "Invalid access token"
         )  # Generic error from core
@@ -253,7 +253,7 @@ class TestIssuerValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert (
             data["error_description"] == "Invalid access token"
         )  # Generic error from core

@@ -184,7 +184,7 @@ class TestCheckObjectOwnership:
             )
             assert response.status_code == 403
             data = json.loads(response.data)
-            assert data["error"] == "forbidden"
+            assert data["error"] == "insufficient_scope"
             assert "permission" in data["error_description"].lower()
 
     def test_owner_can_access_their_different_object(self, test_app, test_key):
@@ -216,7 +216,7 @@ class TestCheckObjectOwnership:
             response = client.get("/articles/1")
             assert response.status_code == 401
             data = json.loads(response.data)
-            assert data["error"] == "unauthorized_access"
+            assert data["error"] == "invalid_token"
 
     def test_object_not_found_returns_404(self, test_app, test_key):
         """Test that non-existent object returns 404."""

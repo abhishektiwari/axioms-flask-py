@@ -218,7 +218,7 @@ class TestAuthentication:
         response = client.get("/private")
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -233,7 +233,7 @@ class TestAuthentication:
         )
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -279,7 +279,7 @@ class TestAuthentication:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -304,7 +304,7 @@ class TestAuthentication:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -352,7 +352,7 @@ class TestScopeAuthorization:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -402,7 +402,7 @@ class TestRoleAuthorization:
         response = client.get("/role", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
         # Check WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
         auth_header = response.headers["WWW-Authenticate"]
@@ -451,7 +451,7 @@ class TestRoleAuthorization:
         response = client.get("/role", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
 
 
 class TestPermissionAuthorization:
@@ -499,7 +499,7 @@ class TestPermissionAuthorization:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_permission_update_with_valid_permission(self, client, test_key):
         """Test update endpoint with valid permission."""
@@ -614,7 +614,7 @@ class TestPermissionAuthorization:
         )
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
 
 
 class TestMultipleMethodsEndpoint:
@@ -686,7 +686,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_scopes_with_no_scopes(self, client, test_key):
         """Test chaining scopes fails when token has neither required scope."""
@@ -708,7 +708,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_roles_with_both_roles(self, client, test_key):
         """Test chaining roles succeeds when token has both required roles."""
@@ -752,7 +752,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_permissions_with_both_permissions(self, client, test_key):
         """Test chaining permissions succeeds when token has both required permissions."""
@@ -799,7 +799,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_mixed_with_all_claims(self, client, test_key):
         """Test mixed chaining succeeds when token has all required claims."""
@@ -847,7 +847,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_mixed_missing_role(self, client, test_key):
         """Test mixed chaining fails when role is missing."""
@@ -871,7 +871,7 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
 
     def test_chaining_mixed_missing_permission(self, client, test_key):
         """Test mixed chaining fails when permission is missing."""
@@ -895,4 +895,4 @@ class TestChainingDecorators:
         )
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "insufficient_permission"
+        assert data["error"] == "insufficient_scope"
