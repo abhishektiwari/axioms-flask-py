@@ -84,7 +84,7 @@ def has_required_scopes(*required_scopes, safe_methods=None):
             if payload is None or payload is False:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Invalid Authorization Token",
                     },
                     401,
@@ -104,7 +104,7 @@ def has_required_scopes(*required_scopes, safe_methods=None):
                 return fn(*args, **kwargs)
             raise AxiomsError(
                 {
-                    "error": "insufficient_permission",
+                    "error": "insufficient_scope",
                     "error_description": "Insufficient role, scope or permission",
                 },
                 403,
@@ -170,7 +170,7 @@ def has_required_roles(*view_roles, safe_methods=None):
             if payload is None or payload is False:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Invalid Authorization Token",
                     },
                     401,
@@ -190,7 +190,7 @@ def has_required_roles(*view_roles, safe_methods=None):
                 return fn(*args, **kwargs)
             raise AxiomsError(
                 {
-                    "error": "insufficient_permission",
+                    "error": "insufficient_scope",
                     "error_description": "Insufficient role, scope or permission",
                 },
                 403,
@@ -256,7 +256,7 @@ def has_required_permissions(*view_permissions, safe_methods=None):
             if payload is None or payload is False:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Invalid Authorization Token",
                     },
                     401,
@@ -278,7 +278,7 @@ def has_required_permissions(*view_permissions, safe_methods=None):
                 return fn(*args, **kwargs)
             raise AxiomsError(
                 {
-                    "error": "insufficient_permission",
+                    "error": "insufficient_scope",
                     "error_description": "Insufficient role, scope or permission",
                 },
                 403,
@@ -309,7 +309,7 @@ def _has_bearer_token(request_obj):
     if auth_header is None:
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": "Missing Authorization Header",
             },
             401,
@@ -321,7 +321,7 @@ def _has_bearer_token(request_obj):
         else:
             raise AxiomsError(
                 {
-                    "error": "unauthorized_access",
+                    "error": "invalid_token",
                     "error_description": "Invalid Authorization Bearer",
                 },
                 401,
@@ -329,7 +329,7 @@ def _has_bearer_token(request_obj):
     except (ValueError, AttributeError):
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": "Invalid Authorization Header",
             },
             401,
@@ -360,7 +360,7 @@ def _has_valid_token(token):
     except Exception:
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": "Invalid token header",
             },
             401,
@@ -371,7 +371,7 @@ def _has_valid_token(token):
     if not alg or alg not in ALLOWED_ALGORITHMS:
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": f"Invalid or unsupported algorithm: {alg}",
             },
             401,
@@ -381,7 +381,7 @@ def _has_valid_token(token):
     if not kid:
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": "Missing key ID in token header",
             },
             401,
@@ -406,7 +406,7 @@ def _has_valid_token(token):
     if not payload:
         raise AxiomsError(
             {
-                "error": "unauthorized_access",
+                "error": "invalid_token",
                 "error_description": "Invalid access token",
             },
             401,
@@ -485,7 +485,7 @@ def has_valid_access_token(fn=None, *, safe_methods=None):
             else:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Invalid Authorization Token",
                     },
                     401,
@@ -613,7 +613,7 @@ def check_object_ownership(
             if not hasattr(g, "auth_jwt") or not g.auth_jwt:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Authentication required",
                     },
                     401,
@@ -633,7 +633,7 @@ def check_object_ownership(
                 # Object missing owner field
                 raise AxiomsError(
                     {
-                        "error": "bad_request",
+                        "error": "invalid_request",
                         "error_description": f"Object does not have '{owner_field}' field",
                     },
                     400,
@@ -651,7 +651,7 @@ def check_object_ownership(
                 # JWT missing claim field
                 raise AxiomsError(
                     {
-                        "error": "forbidden",
+                        "error": "insufficient_scope",
                         "error_description": f"Token does not have '{claim_field}' claim",
                     },
                     403,
@@ -661,7 +661,7 @@ def check_object_ownership(
             if str(owner_value) != str(claim_value):
                 raise AxiomsError(
                     {
-                        "error": "forbidden",
+                        "error": "insufficient_scope",
                         "error_description": "You do not have permission to access this resource",
                     },
                     403,
@@ -729,7 +729,7 @@ def require_ownership(
             if not hasattr(g, "auth_jwt") or not g.auth_jwt:
                 raise AxiomsError(
                     {
-                        "error": "unauthorized_access",
+                        "error": "invalid_token",
                         "error_description": "Authentication required",
                     },
                     401,
@@ -739,7 +739,7 @@ def require_ownership(
             if not args:
                 raise AxiomsError(
                     {
-                        "error": "bad_request",
+                        "error": "invalid_request",
                         "error_description": "No object provided to check ownership",
                     },
                     400,
@@ -755,7 +755,7 @@ def require_ownership(
             else:
                 raise AxiomsError(
                     {
-                        "error": "bad_request",
+                        "error": "invalid_request",
                         "error_description": f"Object does not have '{owner_field}' field",
                     },
                     400,
@@ -770,7 +770,7 @@ def require_ownership(
             else:
                 raise AxiomsError(
                     {
-                        "error": "forbidden",
+                        "error": "insufficient_scope",
                         "error_description": f"Token does not have '{claim_field}' claim",
                     },
                     403,
@@ -780,7 +780,7 @@ def require_ownership(
             if str(owner_value) != str(claim_value):
                 raise AxiomsError(
                     {
-                        "error": "forbidden",
+                        "error": "insufficient_scope",
                         "error_description": "You do not have permission to access this resource",
                     },
                     403,

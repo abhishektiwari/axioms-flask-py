@@ -142,7 +142,7 @@ class TestAlgorithmValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert "algorithm" in data["error_description"].lower()
 
     def test_reject_hs256_symmetric_algorithm(self, client, test_key):
@@ -173,7 +173,7 @@ class TestAlgorithmValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert "algorithm" in data["error_description"].lower()
 
     def test_reject_missing_algorithm(self, client):
@@ -201,7 +201,7 @@ class TestAlgorithmValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
 
     def test_reject_missing_kid(self, client, test_key):
         """Test that tokens without key ID are rejected."""
@@ -226,7 +226,7 @@ class TestAlgorithmValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
         assert (
             "key id" in data["error_description"].lower()
             or "kid" in data["error_description"].lower()
@@ -265,4 +265,4 @@ class TestAlgorithmValidation:
         response = client.get("/private", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "unauthorized_access"
+        assert data["error"] == "invalid_token"
