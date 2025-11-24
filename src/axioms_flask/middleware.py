@@ -6,13 +6,12 @@ setting request-scoped attributes for use in route handlers.
 
 import logging
 
-import jwt as pyjwt
 from axioms_core import (
-    ALLOWED_ALGORITHMS,
     AxiomsError,
     check_token_validity,
     get_expected_issuer,
     get_key_from_jwks_json,
+    validate_token_header,
 )
 from flask import Flask, g, request
 
@@ -93,29 +92,11 @@ def setup_token_middleware(app: Flask) -> None:
 
         # Validate token
         try:
-            # Get token header
-            try:
-                header = pyjwt.get_unverified_header(token)
-            except Exception as e:
-                logger.debug(f"Invalid token header: {e}")
-                g.auth_jwt = False
-                return
-
-            # Validate algorithm
-            alg = header.get("alg")
-            if not alg or alg not in ALLOWED_ALGORITHMS:
-                logger.debug(f"Invalid or unsupported algorithm: {alg}")
-                g.auth_jwt = False
-                return
-
-            # Get key ID
-            kid = header.get("kid")
-            if not kid:
-                logger.debug("Missing key ID in token header")
-                g.auth_jwt = False
-                return
+            # Validate token header (alg, kid, typ)
+            header = validate_token_header(token)
 
             # Get public key from JWKS
+            kid = header.get("kid")
             key = get_key_from_jwks_json(kid, config)
 
             # Get expected values
@@ -126,22 +107,20 @@ def setup_token_middleware(app: Flask) -> None:
             )
             expected_issuer = get_expected_issuer(config)
 
-            # Validate token
+            # Validate token (raises AxiomsError on failure)
             payload = check_token_validity(
                 token=token,
                 key=key,
-                alg=alg,
+                alg=header.get("alg"),
                 audience=audience,
                 issuer=expected_issuer,
             )
 
-            if payload:
-                g.auth_jwt = payload
-            else:
-                g.auth_jwt = False
+            # Token is valid, store payload
+            g.auth_jwt = payload
 
         except AxiomsError as e:
-            logger.debug(f"Token validation failed: {e.error}")
+            logger.warning(f"Token validation failed: {e.error}")
             g.auth_jwt = False
         except Exception as e:
             logger.exception(f"Unexpected error during token validation: {e}")
