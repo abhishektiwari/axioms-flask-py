@@ -139,9 +139,7 @@ class TestIssuerValidation:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data["error"] == "invalid_token"
-        assert (
-            data["error_description"] == "Invalid access token"
-        )  # Generic error from core
+        assert data["error_description"] == "Invalid token issuer"
 
     def test_token_without_issuer_claim_when_validation_enabled(
         self, client, test_key, app
@@ -165,9 +163,8 @@ class TestIssuerValidation:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data["error"] == "invalid_token"
-        assert (
-            data["error_description"] == "Invalid access token"
-        )  # Generic error from core
+        # Missing issuer claim returns generic error from PyJWT
+        assert data["error_description"] == "Invalid access token"
 
     def test_issuer_derived_from_domain(self, client, test_key, app):
         """Test that issuer is correctly derived from AXIOMS_DOMAIN."""
@@ -254,6 +251,4 @@ class TestIssuerValidation:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data["error"] == "invalid_token"
-        assert (
-            data["error_description"] == "Invalid access token"
-        )  # Generic error from core
+        assert data["error_description"] == "Invalid token issuer"

@@ -33,7 +33,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "axioms-core-py>=0.0.4",
+    "axioms-core-py>=0.0.5",
     "Flask",
     "Flask-DotEnv",
 ]

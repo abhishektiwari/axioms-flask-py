@@ -10,9 +10,7 @@ For complete configuration documentation, see the Configuration section in the A
 from functools import wraps
 from typing import Callable, Optional
 
-import jwt as pyjwt
 from axioms_core import (
-    ALLOWED_ALGORITHMS,
     AxiomsError,
     check_permissions,
     check_roles,
@@ -21,6 +19,7 @@ from axioms_core import (
     get_claim_from_token,
     get_expected_issuer,
     get_key_from_jwks_json,
+    validate_token_header,
 )
 from axioms_core.config import get_config_value
 from flask import current_app as app
@@ -354,40 +353,11 @@ def _has_valid_token(token):
     # Get configuration
     config = get_config()
 
-    # Get and validate the token header
-    try:
-        header = pyjwt.get_unverified_header(token)
-    except Exception:
-        raise AxiomsError(
-            {
-                "error": "invalid_token",
-                "error_description": "Invalid token header",
-            },
-            401,
-        )
-
-    # Validate algorithm - must be in allowed list to prevent algorithm confusion attacks
-    alg = header.get("alg")
-    if not alg or alg not in ALLOWED_ALGORITHMS:
-        raise AxiomsError(
-            {
-                "error": "invalid_token",
-                "error_description": f"Invalid or unsupported algorithm: {alg}",
-            },
-            401,
-        )
-
-    kid = header.get("kid")
-    if not kid:
-        raise AxiomsError(
-            {
-                "error": "invalid_token",
-                "error_description": "Missing key ID in token header",
-            },
-            401,
-        )
+    # Validate token header (alg, kid, typ) - raises AxiomsError on failure
+    header = validate_token_header(token)
 
     # Get key from JWKS (uses fallback if manager not initialized)
+    kid = header.get("kid")
     key = get_key_from_jwks_json(kid, config)
 
     # Get expected audience and issuer
@@ -398,19 +368,14 @@ def _has_valid_token(token):
     )
     expected_issuer = get_expected_issuer(config)
 
-    # Validate token using core function
+    # Validate token using core function (raises AxiomsError on failure)
     payload = check_token_validity(
-        token=token, key=key, alg=alg, audience=audience, issuer=expected_issuer
+        token=token,
+        key=key,
+        alg=header.get("alg"),
+        audience=audience,
+        issuer=expected_issuer,
     )
-
-    if not payload:
-        raise AxiomsError(
-            {
-                "error": "invalid_token",
-                "error_description": "Invalid access token",
-            },
-            401,
-        )
 
     # Store payload in Flask g object for route access
     g.auth_jwt = payload
@@ -479,17 +444,10 @@ def has_valid_access_token(fn=None, *, safe_methods=None):
                     "Please set either AXIOMS_JWKS_URL or AXIOMS_DOMAIN in your config. "
                     "For more details review axioms-flask-py docs."
                 )
+            # Extract and validate token (raises AxiomsError on failure)
             token = _has_bearer_token(request)
-            if token and _has_valid_token(token):
-                return func(*args, **kwargs)
-            else:
-                raise AxiomsError(
-                    {
-                        "error": "invalid_token",
-                        "error_description": "Invalid Authorization Token",
-                    },
-                    401,
-                )
+            _has_valid_token(token)
+            return func(*args, **kwargs)
 
         return wrapper
 
